@@ -13,6 +13,7 @@ import logger from 'morgan';
 var createError = require('http-errors');
 
 /* Custom utilities */
+const databaseConnect = require("./database");
 const AppLogger = require("./logger");
 const SuccessHandler = require("./handlers/success");
 const ErrorHandler = require("./handlers/error");
@@ -34,10 +35,12 @@ app.use('/users', usersRouter);
 
 app.use(SuccessHandler);
 
-// catch 404 and forward to error handler
+/* Catch wrong routing and forward to Error handler */
 app.use((_req: Request, _res: Response, next: NextFunction) => next(createError(404)));
 
-// error handler
+/* Error handler */
 app.use(ErrorHandler);
 
-app.listen(3000, AppLogger.serverRunning);
+/* MongoDB database connection, which leads to the server launch if established */
+databaseConnect()
+    .then(() => app.listen(3000, AppLogger.serverRunning));

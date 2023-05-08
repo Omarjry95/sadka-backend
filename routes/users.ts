@@ -1,16 +1,12 @@
-import express, {NextFunction, Request, Response, Router} from "express";
-const SuccessResponse = require('../models/app/SuccessResponse');
+import express, { NextFunction, Request, Response, Router } from "express";
 
 var router: Router = express.Router();
 
+var send = require('../handlers/send');
+
 router.post('/', (req: Request, res: Response, next: NextFunction) => {
-  try {
-    throw new Error("Not Successful !");
-  }
-  catch (e) {
-    next(e);
-  }
-  // res.send(new SuccessResponse());
+
+  send({ message: "The user has been created successfully" }, res, next);
 });
 
 module.exports = router;

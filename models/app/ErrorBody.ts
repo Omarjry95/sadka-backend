@@ -1,4 +1,4 @@
-class ErrorBody {
+module.exports = class ErrorBody {
     private code: number;
     private message: string = "";
 
@@ -7,5 +7,3 @@ class ErrorBody {
         this.message = message;
     }
 }
-
-module.exports = ErrorBody;

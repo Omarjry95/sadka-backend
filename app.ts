@@ -10,6 +10,7 @@ import logger from 'morgan';
 // var logger = require('morgan');
 
 /* Node requirements */
+require('dotenv').config();
 var createError = require('http-errors');
 
 /* Custom utilities */
@@ -43,4 +44,5 @@ app.use(ErrorHandler);
 
 /* MongoDB database connection, which leads to the server launch if established */
 databaseConnect()
-    .then(() => app.listen(3000, AppLogger.serverRunning));
+    .then(() => app.listen(3000, AppLogger.serverRunning))
+    .catch(AppLogger.databaseConnectionAbandoned);

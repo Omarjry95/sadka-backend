@@ -19,8 +19,9 @@ module.exports = async () => {
         const existingUser: IUserSchema | null = await User.findOne({ _id: userId });
 
         if (existingUser) {
-            AppLogger.userWithSameIdExists();
-            throw new Error();
+            throw new Error(AppLogger.stringifyToThrow(
+                AppLogger.messages.userWithSameIdExists()
+            ));
         }
 
         const firstUser: HydratedDocument<IUserSchema> = new User({
@@ -33,13 +34,16 @@ module.exports = async () => {
         const roleModelValidation: MongooseError.ValidationError | null = firstUser.validateSync();
 
         if (roleModelValidation) {
-            AppLogger.schemaValidationError(User.modelName, gatherValidationMessages(roleModelValidation));
-            throw new Error();
+            throw new Error(AppLogger.stringifyToThrow(
+                AppLogger.messages.schemaValidationError(User.modelName, gatherValidationMessages(roleModelValidation))
+            ));
         }
 
-        await firstUser.save();
+        return firstUser.save()
+            .then(() => AppLogger.log(AppLogger.messages.seedsInserted(User.modelName)));
     }
 
-    AppLogger.documentDoesNotExist(Role.modelName);
-    throw new Error();
+    throw new Error(AppLogger.stringifyToThrow(
+        AppLogger.messages.documentDoesNotExist(Role.modelName)
+    ));
 }

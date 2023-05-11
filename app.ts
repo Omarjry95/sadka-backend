@@ -15,6 +15,7 @@ var createError = require('http-errors');
 
 /* Custom utilities */
 const databaseConnect = require("./database");
+const firebaseInit = require("./firebase");
 const AppLogger = require("./logger");
 const SuccessHandler = require("./handlers/success");
 const ErrorHandler = require("./handlers/error");
@@ -44,5 +45,6 @@ app.use(ErrorHandler);
 
 /* MongoDB database connection, which leads to the server launch if established */
 databaseConnect()
-    .then(() => app.listen(3000, AppLogger.serverRunning))
-    .catch(AppLogger.databaseConnectionAbandoned);
+    .then(firebaseInit)
+    .then(() => app.listen(3000, () => AppLogger.log(AppLogger.messages.serverRunning())))
+    .catch((error: Error) => AppLogger.parseAndLog(error.message));

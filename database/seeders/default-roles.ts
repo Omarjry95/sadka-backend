@@ -27,10 +27,11 @@ module.exports = () => {
     if (valid) {
         return Role.deleteMany({})
             .then(() => Role.insertMany(roles))
-            .then(() => AppLogger.seedsInserted(Role.modelName));
+            .then(() => AppLogger.log(AppLogger.messages.seedsInserted(Role.modelName)));
     }
     else {
-        AppLogger.schemaValidationError(Role.modelName, gatherValidationMessages(roleModelValidation));
-        throw new Error();
+        throw new Error(AppLogger.stringifyToThrow(
+            AppLogger.messages.schemaValidationError(Role.modelName, gatherValidationMessages(roleModelValidation))
+        ));
     }
 }

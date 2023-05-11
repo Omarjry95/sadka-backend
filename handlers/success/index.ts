@@ -9,7 +9,7 @@ module.exports = (req: Request, res: Response, next: NextFunction) => {
     const { path } = req;
     const { status, message, body } = res.locals;
 
-    AppLogger.requestSuccess(message, path);
+    AppLogger.log(AppLogger.messages.requestSuccess(message, path));
 
     res.status(status ?? 200)
         .send(body ?? new SuccessResponse());

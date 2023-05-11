@@ -7,23 +7,32 @@ const AppLogger = require("../logger");
 
 const { DATABASE_NAME, DATABASE_USERNAME, DATABASE_PASSWORD } = process.env;
 
-module.exports = () => mongoose
-    .connect("mongodb+srv://"
-        .concat(DATABASE_USERNAME ?? "")
-        .concat(":")
-        .concat(DATABASE_PASSWORD ?? "")
-        .concat("@")
-        .concat(DATABASE_NAME ?? "")
-        .concat("/")
-        .concat("?")
-        .concat("retryWrites=true")
-        .concat("&")
-        .concat("w=majority"))
-    .then(AppLogger.databaseConnected)
-    .catch(() => {
-        AppLogger.databaseConnectionAbandoned();
-        throw new Error();
-    })
+const establishDatabaseConnection = async () => {
+    try {
+        await mongoose
+            .connect("mongodb+srv://"
+                .concat(DATABASE_USERNAME ?? "")
+                .concat(":")
+                .concat(DATABASE_PASSWORD ?? "")
+                .concat("@")
+                .concat(DATABASE_NAME ?? "")
+                .concat("/")
+                .concat("?")
+                .concat("retryWrites=true")
+                .concat("&")
+                .concat("w=majority"));
+
+        AppLogger.log(AppLogger.messages.databaseConnected());
+    }
+    catch (e: any) {
+        throw new Error(AppLogger.stringifyToThrow(
+            AppLogger.messages.databaseConnectionAbandoned()
+        ));
+    }
+}
+
+module.exports = () => establishDatabaseConnection()
+    /* Seeders: Please comment after completing seeding the database ! */
     // .then(defaultRolesSeeder)
     // .then(firstUserSeeder)
 ;

@@ -3,7 +3,7 @@ import {IUserSchema} from "../../models/schema/IUserSchema";
 import {IRoleSchema} from "../../models/schema/IRoleSchema";
 
 var AppLogger = require('../../logger');
-const gatherValidationMessages = require("../../handlers/validation-messages");
+const gatherValidationMessages = require("../../handlers/mongoose-schema-validation-messages");
 
 const User = require("../../schema/User");
 const Role = require("../../schema/Role");

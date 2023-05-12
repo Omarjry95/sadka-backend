@@ -2,7 +2,7 @@ import {IRoleSchema} from "../../models/schema/IRoleSchema";
 import {Error as MongooseError, HydratedDocument} from "mongoose";
 
 const AppLogger = require("../../logger");
-const gatherValidationMessages = require("../../handlers/validation-messages");
+const gatherValidationMessages = require("../../handlers/mongoose-schema-validation-messages");
 
 const Role = require("../../schema/Role");
 

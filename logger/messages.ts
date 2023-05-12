@@ -19,6 +19,12 @@ module.exports = {
         "Schema validation for model ".white + model.red + " has exited with these error messages:".white,
         ...messages.map((message: string) => "\t" + message.red)
     ],
+    requestBodyValidationError: (path: string): string[] => [
+        "Runtime type validation".red + " for body of request ".white + path.red + " has failed".red
+    ],
+    requestBodyDataValidationError: (path: string) => [
+        "Data validation".red + " for body of request ".white + path.red + " has failed".red
+    ],
     seedsInserted: (model: string): string[] => ["Seeds".green + " for ".white + model.green + " have been inserted seccessfully.".white],
     documentDoesNotExist: (model: string): string[] => ["No document".red + " for the ".white + model.red +
         " with the criteria you provided has been found.".white],

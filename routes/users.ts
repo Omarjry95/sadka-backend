@@ -3,9 +3,14 @@ import {ICreateUserRequestBody} from "../models/routes/ICreateUserRequestBody";
 import {TypeOf} from "io-ts";
 import {IDataValidationObject} from "../models/app/IDataValidationObject";
 import {ValidationTypesEnum} from "../models/app/ValidationTypesEnum";
+import {auth} from "firebase-admin";
+import {HydratedDocument} from "mongoose";
+import {IUserSchema} from "../models/schema/IUserSchema";
+import {IRoleSchema} from "../models/schema/IRoleSchema";
 
 var router: Router = express.Router();
 // var AppLogger = require("../logger");
+const User = require("../schema/User");
 var Constants = require("../constants");
 var UserService = require("../services/userService");
 var isRequestBodyInvalid = require("../handlers/request-body-validation");
@@ -36,6 +41,24 @@ router.post('/', async (req: Request<any, any, TypeOf<typeof ICreateUserRequestB
     return;
   }
   catch (e: any) {
+
+    const userData: auth.CreateRequest = {
+      email,
+      password,
+      displayName: firstName.concat(' ').concat(lastName)
+    }
+
+    const userUID: string = await UserService.createFirebaseUser(userData, next);
+
+    if (!userUID.length) { return; }
+
+    const user: HydratedDocument<IUserSchema> = new User({
+      _id: userUID,
+      firstName,
+      lastName,
+      role
+    });
+
     send({ message: "The user has been created successfully" }, res, next);
   }
 });

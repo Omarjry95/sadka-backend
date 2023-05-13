@@ -28,6 +28,9 @@ module.exports = {
     seedsInserted: (model: string): string[] => ["Seeds".green + " for ".white + model.green + " have been inserted seccessfully.".white],
     documentDoesNotExist: (model: string): string[] => ["No document".red + " for the ".white + model.red +
         " with the criteria you provided has been found.".white],
+    firebaseUserNotCreated: (): string[] => [
+        "User has failed".red + " to add to ".white + "Firebase".red
+    ],
     userWithSameIdExists: (): string[] => ["A user with the same ID".red + " you provided ".white + "already exists".red + " in our database.".white],
     firebaseUserWithSameEmailExists: (): string[] => ["A user with the same email".red + " you provided ".white + "already exists".red +
         " in our ".white + "firebase".red + " database.".white]

@@ -4,19 +4,19 @@ import {TypeOf} from "io-ts";
 import {IDataValidationObject} from "../models/app/IDataValidationObject";
 import {ValidationTypesEnum} from "../models/app/ValidationTypesEnum";
 import {auth} from "firebase-admin";
-import {HydratedDocument} from "mongoose";
-import {IUserSchema} from "../models/schema/IUserSchema";
 import {IRoleSchema} from "../models/schema/IRoleSchema";
+import {IUserSchema} from "../models/schema/IUserSchema";
+import {HydratedDocument} from "mongoose";
 
 var router: Router = express.Router();
-// var AppLogger = require("../logger");
-const User = require("../schema/User");
+var AppLogger = require("../logger");
 var Constants = require("../constants");
+var send = require('../handlers/send-response');
+var User = require("../schema/User");
 var UserService = require("../services/userService");
+var RoleService = require("../services/roleService");
 var isRequestBodyInvalid = require("../handlers/request-body-validation");
 var isRequestBodyDataInvalid = require("../handlers/request-body-data-validation");
-
-var send = require('../handlers/send-response');
 
 router.post('/', async (req: Request<any, any, TypeOf<typeof ICreateUserRequestBody>>, res: Response, next: NextFunction) => {
 
@@ -42,13 +42,17 @@ router.post('/', async (req: Request<any, any, TypeOf<typeof ICreateUserRequestB
   }
   catch (e: any) {
 
-    const userData: auth.CreateRequest = {
+    const userRole: IRoleSchema | null = await RoleService.getRoleById(role, next);
+
+    if (!userRole) { return; }
+
+    const firebaseUserData: auth.CreateRequest = {
       email,
       password,
       displayName: firstName.concat(' ').concat(lastName)
     }
 
-    const userUID: string = await UserService.createFirebaseUser(userData, next);
+    const userUID: string = await UserService.createFirebaseUser(firebaseUserData, next);
 
     if (!userUID.length) { return; }
 
@@ -56,10 +60,12 @@ router.post('/', async (req: Request<any, any, TypeOf<typeof ICreateUserRequestB
       _id: userUID,
       firstName,
       lastName,
-      role
+      role: userRole._id
     });
 
-    send({ message: "The user has been created successfully" }, res, next);
+    if (!(await UserService.createUser(user, next))) { return; }
+
+    send({ message: AppLogger.messages.documentCreatedSuccess(User.modelName)[0] }, res, next);
   }
 });
 

@@ -19,19 +19,17 @@ module.exports = {
         "Schema validation for model ".white + model.red + " has exited with these error messages:".white,
         ...messages.map((message: string) => "\t" + message.red)
     ],
-    requestBodyValidationError: (path: string): string[] => [
-        "Runtime type validation".red + " for body of request ".white + path.red + " has failed".red
-    ],
-    requestBodyDataValidationError: (path: string) => [
-        "Data validation".red + " for body of request ".white + path.red + " has failed".red
-    ],
-    seedsInserted: (model: string): string[] => ["Seeds".green + " for ".white + model.green + " have been inserted seccessfully.".white],
+    requestBodyValidationError: (path: string): string[] => ["Runtime type validation".red + " for body of request ".white + path.red + " has failed".red],
+    requestBodyDataValidationError: (path: string): string[] => ["Data validation".red + " for body of request ".white + path.red + " has failed".red],
+    documentCreatedSuccess: (model: string): string[] => ["Document of model ".white + model.green + " has been ".white + "created".green +
+        " successfully".white],
     documentDoesNotExist: (model: string): string[] => ["No document".red + " for the ".white + model.red +
-        " with the criteria you provided has been found.".white],
-    firebaseUserNotCreated: (): string[] => [
-        "User has failed".red + " to add to ".white + "Firebase".red
+    " with the criteria you provided has been found.".white
     ],
+    documentNotCreated: (model: string): string[] => ["Model ".white + model.red + " could not be created."],
+    firebaseUserNotCreated: (): string[] => ["User has failed".red + " to add to ".white + "Firebase".red],
     userWithSameIdExists: (): string[] => ["A user with the same ID".red + " you provided ".white + "already exists".red + " in our database.".white],
     firebaseUserWithSameEmailExists: (): string[] => ["A user with the same email".red + " you provided ".white + "already exists".red +
-        " in our ".white + "firebase".red + " database.".white]
+        " in our ".white + "firebase".red + " database.".white],
+    seedsInserted: (model: string): string[] => ["Seeds".green + " for ".white + model.green + " have been inserted seccessfully.".white]
 }

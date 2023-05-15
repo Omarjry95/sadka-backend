@@ -31,11 +31,11 @@ module.exports = async () => {
             role: userRole._id
         });
 
-        const roleModelValidation: MongooseError.ValidationError | null = firstUser.validateSync();
+        const userModelValidation: MongooseError.ValidationError | null = firstUser.validateSync();
 
-        if (roleModelValidation) {
+        if (userModelValidation) {
             throw new Error(AppLogger.stringifyToThrow(
-                AppLogger.messages.schemaValidationError(User.modelName, gatherValidationMessages(roleModelValidation))
+                AppLogger.messages.schemaValidationError(User.modelName, gatherValidationMessages(userModelValidation))
             ));
         }
 

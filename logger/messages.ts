@@ -21,6 +21,8 @@ module.exports = {
     ],
     requestBodyValidationError: (path: string): string[] => ["Runtime type validation".red + " for body of request ".white + path.red + " has failed".red],
     requestBodyDataValidationError: (path: string): string[] => ["Data validation".red + " for body of request ".white + path.red + " has failed".red],
+    dataFetchedSuccess: (model: string): string[] => ["Requested documents of model ".white + model.green + " has been ".white + "fetched".green +
+        " successfully".white],
     documentCreatedSuccess: (model: string): string[] => ["Document of model ".white + model.green + " has been ".white + "created".green +
         " successfully".white],
     documentDoesNotExist: (model: string): string[] => ["No document".red + " for the ".white + model.red +

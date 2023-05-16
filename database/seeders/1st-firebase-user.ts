@@ -13,7 +13,7 @@ module.exports = async () => {
 
     await User.deleteOne({ _id: userId });
 
-    const userRole: IRoleSchema | null = await Role.findOne({ label: 'Citizen' });
+    const userRole: IRoleSchema | null = await Role.findOne().sort({ created_at: 1 });
 
     if (userRole) {
         const existingUser: IUserSchema | null = await User.findOne({ _id: userId });

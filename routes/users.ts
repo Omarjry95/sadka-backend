@@ -63,9 +63,7 @@ router.post('/', async (req: Request<any, any, TypeOf<typeof ICreateUserRequestB
       send({ message: AppLogger.messages.documentCreatedSuccess(User.modelName)[0] }, res, next);
     }
   }
-  catch (e: any) {
-    next(e);
-  }
+  catch (e: any) { next(e); }
 });
 
 module.exports = router;

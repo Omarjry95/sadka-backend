@@ -8,9 +8,9 @@ const Role = require("../../schema/Role");
 
 module.exports = () => {
     const roles: HydratedDocument<IRoleSchema>[] = [
-        new Role({ label: 'Citizen' }),
-        new Role({ label: 'Charity' }),
-        new Role({ label: 'Admin' })
+        new Role({ label: 'Citoyen philantrope' }),
+        new Role({ label: 'Organisme de bienfaisance' }),
+        new Role({ label: 'Administrateur' })
     ];
 
     let valid: boolean = true;

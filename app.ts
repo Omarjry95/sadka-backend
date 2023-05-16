@@ -24,6 +24,7 @@ var app: Express = express();
 
 /* Routes requirements */
 var usersRouter = require('./routes/users');
+var rolesRouter = require('./routes/roles');
 
 /* Handlers */
 app.use(logger('dev'));
@@ -34,6 +35,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 /* Routes */
 app.use('/users', usersRouter);
+app.use('/roles', rolesRouter);
 
 app.use(SuccessHandler);
 

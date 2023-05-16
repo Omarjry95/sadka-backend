@@ -9,36 +9,26 @@ const User = require("../schema/User");
 const gatherValidationMessages = require("../handlers/mongoose-schema-validation-messages");
 
 module.exports = {
-    createUser: async (user: HydratedDocument<IUserSchema>, next: NextFunction): Promise<boolean> => {
+    createUser: async (user: HydratedDocument<IUserSchema>): Promise<void> => {
 
         const userModelValidation: MongooseError.ValidationError | null = user.validateSync();
 
         if (userModelValidation) {
-            next(
-                new Error(
-                    AppLogger.stringifyToThrow(
-                        AppLogger.messages.schemaValidationError(
-                            User.modelName,
-                            gatherValidationMessages(userModelValidation)))));
-
-            return false;
+            throw new Error(
+                AppLogger.stringifyToThrow(
+                    AppLogger.messages.schemaValidationError(
+                        User.modelName,
+                        gatherValidationMessages(userModelValidation))));
         }
-
-        let userCreated: boolean = true;
 
         try { await user.save(); }
-        catch (e) {
-            userCreated = false;
-
-            next(
-                new Error(
-                    AppLogger.stringifyToThrow(
-                        AppLogger.messages.documentNotCreated(User.modelName))))
+        catch (e: any) {
+            throw new Error(
+                AppLogger.stringifyToThrow(
+                    AppLogger.messages.documentNotCreated(User.modelName)))
         }
-
-        return userCreated;
     },
-    createFirebaseUser: async (data: auth.CreateRequest, next: NextFunction): Promise<string> => {
+    createFirebaseUser: async (data: auth.CreateRequest): Promise<string> => {
         let userUID: string = "";
 
         try {
@@ -51,11 +41,10 @@ module.exports = {
             userUID = userCreated.uid;
         }
         catch (e: any) {
-            next(
-                new Error(
-                    AppLogger.stringifyToThrow(
-                        AppLogger.messages.firebaseUserNotCreated()
-                    )));
+            throw new Error(
+                AppLogger.stringifyToThrow(
+                    AppLogger.messages.firebaseUserNotCreated()
+                ));
         }
 
         return userUID;

@@ -1,11 +1,10 @@
 import {IDataValidationObject} from "../../models/app/IDataValidationObject";
-import {NextFunction} from "express";
 import {ValidationTypesEnum} from "../../models/app/ValidationTypesEnum";
 
 var AppLogger = require("../../logger");
 
-module.exports = (valuesToValidate: IDataValidationObject[], path: string, next: NextFunction): boolean => {
-    const isNotValid: boolean = valuesToValidate.map(valueToValidate => valueToValidate
+module.exports = (dataToValidate: IDataValidationObject[], path: string): void => {
+    const isNotValid: boolean = dataToValidate.map(valueToValidate => valueToValidate
         .validations
         .map(validation => {
             const { value, options } = valueToValidate;
@@ -34,14 +33,9 @@ module.exports = (valuesToValidate: IDataValidationObject[], path: string, next:
         .some(v => v);
 
     if (isNotValid) {
-        next(
-            new Error(
-                AppLogger.stringifyToThrow(
-                    AppLogger.messages.requestBodyDataValidationError("")
-                )
-            )
-        )
+        throw new Error(
+            AppLogger.stringifyToThrow(
+                AppLogger.messages.requestBodyDataValidationError(path)
+            ));
     }
-
-    return isNotValid;
 }

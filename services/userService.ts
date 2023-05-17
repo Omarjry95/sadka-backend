@@ -58,5 +58,12 @@ module.exports = {
                 AppLogger.stringifyToThrow(
                     AppLogger.messages.firebaseUserWithSameEmailExists()
                 )));
+    },
+    getDisplayName: (isUserCitizen: boolean, firstName: string = "", lastName: string = "", charityName: string = ""): string => {
+        if (isUserCitizen) {
+            return firstName.concat(' ').concat(lastName);
+        }
+
+        return charityName;
     }
 }

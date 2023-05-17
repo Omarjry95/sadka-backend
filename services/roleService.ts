@@ -1,4 +1,5 @@
 import {IRoleSchema} from "../models/schema/IRoleSchema";
+import {IUserRoleServiceResponse} from "../models/routes/IUserRoleServiceResponse";
 
 const AppLogger = require("../logger");
 const Role = require("../schema/Role");
@@ -22,6 +23,24 @@ module.exports = {
                     AppLogger.stringifyToThrow(
                         AppLogger.messages.documentDoesNotExist(Role.modelName)))
             });
+    },
+    isUserCitizen: async (roleId: string): Promise<IUserRoleServiceResponse> => {
+        const roles: IRoleSchema[] = await Role.find();
+
+        roles.pop();
+
+        const userRoleIndex: number = roles.findIndex((roleItem: IRoleSchema) => roleItem._id.toString() === roleId);
+
+        if (userRoleIndex < 0) {
+            throw new Error(
+                AppLogger.stringifyToThrow(
+                    AppLogger.messages.documentDoesNotExist(Role.modelName)));
+        }
+
+        return {
+            userRoleId: roles[userRoleIndex]._id,
+            isCitizen: userRoleIndex === 0
+        }
     },
     getRoleById: async (id: string): Promise<IRoleSchema> => {
         let role: IRoleSchema | null = null;

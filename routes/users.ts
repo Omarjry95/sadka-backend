@@ -4,15 +4,16 @@ import {TypeOf} from "io-ts";
 import {IDataValidationObject} from "../models/app/IDataValidationObject";
 import {ValidationTypesEnum} from "../models/app/ValidationTypesEnum";
 import {auth} from "firebase-admin";
-import {IRoleSchema} from "../models/schema/IRoleSchema";
 import {IUserSchema} from "../models/schema/IUserSchema";
 import {HydratedDocument} from "mongoose";
+import {IUserRoleServiceResponse} from "../models/routes/IUserRoleServiceResponse";
 
 var router: Router = express.Router();
 var AppLogger = require("../logger");
 var Constants = require("../constants");
 var send = require('../handlers/send-response');
 var User = require("../schema/User");
+var Role = require("../schema/Role");
 var UserService = require("../services/userService");
 var RoleService = require("../services/roleService");
 var performRequestBodyValidation = require("../handlers/request-body-validation");
@@ -21,13 +22,23 @@ var performRequestBodyDataValidation = require("../handlers/request-body-data-va
 router.post('/', async (req: Request<any, any, TypeOf<typeof ICreateUserRequestBody>>, res: Response, next: NextFunction) => {
 
   const { body, originalUrl } = req;
-  const { email, password, lastName, firstName, role } = body;
+  const { email, password, lastName, firstName, charityName, role } = body;
+
+  const userRoleData: IUserRoleServiceResponse = await RoleService.isUserCitizen(role);
+
+  const { isCitizen, userRoleId } = userRoleData;
+
+  const roleBasedDataToValidate: IDataValidationObject[] = isCitizen ? [
+    { value: lastName, validations: [ValidationTypesEnum.NOT_BLANK] },
+    { value: firstName, validations: [ValidationTypesEnum.NOT_BLANK] }
+  ] : [
+    { value: charityName, validations: [ValidationTypesEnum.NOT_BLANK] }
+  ];
 
   const dataToValidate: IDataValidationObject[] = [
+    ...roleBasedDataToValidate,
     { value: email, validations: [ValidationTypesEnum.NOT_BLANK, ValidationTypesEnum.REGEX], options: { regex: new RegExp(Constants.emailRegex) } },
     { value: password, validations: [ValidationTypesEnum.NOT_BLANK, ValidationTypesEnum.MIN_LENGTH], options: { minLength: 6 } },
-    { value: lastName, validations: [ValidationTypesEnum.NOT_BLANK] },
-    { value: firstName, validations: [ValidationTypesEnum.NOT_BLANK] },
     { value: role, validations: [ValidationTypesEnum.NOT_BLANK] }
   ];
 
@@ -41,12 +52,10 @@ router.post('/', async (req: Request<any, any, TypeOf<typeof ICreateUserRequestB
       return;
     }
     catch (e: any) {
-      const userRole: IRoleSchema = await RoleService.getRoleById(role);
-
       const firebaseUserData: auth.CreateRequest = {
         email,
         password,
-        displayName: firstName.concat(' ').concat(lastName)
+        displayName: UserService.getDisplayName(isCitizen, firstName, lastName, charityName)
       }
 
       const userUID: string = await UserService.createFirebaseUser(firebaseUserData);
@@ -55,7 +64,8 @@ router.post('/', async (req: Request<any, any, TypeOf<typeof ICreateUserRequestB
         _id: userUID,
         firstName,
         lastName,
-        role: userRole._id
+        charityName,
+        role: userRoleId
       });
 
       await UserService.createUser(user);

@@ -14,6 +14,9 @@ module.exports = {
         "When requesting: ".red + path,
         "With error message: ".red + message
     ],
+    routeLostError: (path: string): string[] => [
+        "Requesting route ".white + path.red + " is 404 ".white + "not found.".red
+    ],
     schemaValidationError: (model: string, messages: string[]): string[] => [
         "Error: ".red + new Date(),
         "Schema validation for model ".white + model.red + " has exited with these error messages:".white,

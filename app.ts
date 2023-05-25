@@ -23,8 +23,9 @@ const ErrorHandler = require("./handlers/error");
 var app: Express = express();
 
 /* Routes requirements */
-var usersRouter = require('./routes/users');
-var rolesRouter = require('./routes/roles');
+// var usersRouter = require('./routes/users');
+// var rolesRouter = require('./routes/roles');
+var routes = require('./routes');
 
 /* Handlers */
 app.use(logger('dev'));
@@ -34,13 +35,9 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 /* Routes */
-app.use('/users', usersRouter);
-app.use('/roles', rolesRouter);
+routes.map((route: any) => app.use(route.prefix, route.router));
 
 app.use(SuccessHandler);
-
-/* Catch wrong routing and forward to Error handler */
-app.use((_req: Request, _res: Response, next: NextFunction) => next(createError(404)));
 
 /* Error handler */
 app.use(ErrorHandler);

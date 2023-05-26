@@ -55,9 +55,7 @@ module.exports = {
 
         next(
             new Error(
-                AppLogger.stringifyToThrow(
-                    AppLogger.messages.firebaseUserWithSameEmailExists()
-                )));
+                AppLogger.stringifyToThrow(["UAE"])));
     },
     getDisplayName: (isUserCitizen: boolean, firstName: string = "", lastName: string = "", charityName: string = ""): string => {
         if (isUserCitizen) {

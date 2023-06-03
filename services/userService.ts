@@ -9,6 +9,22 @@ const User = require("../schema/User");
 const gatherValidationMessages = require("../handlers/mongoose-schema-validation-messages");
 
 module.exports = {
+    getUserById: async (id: string): Promise<IUserSchema> => {
+        let user: IUserSchema | null = null;
+
+        try {
+            user = await User.findById(id);
+
+            if (!user) { throw new Error(); }
+        }
+        catch (e: any) {
+            throw new Error(
+                AppLogger.stringifyToThrow(
+                    AppLogger.messages.documentDoesNotExist(User.modelName)));
+        }
+
+        return user;
+    },
     createUser: async (user: HydratedDocument<IUserSchema>): Promise<void> => {
 
         const userModelValidation: MongooseError.ValidationError | null = user.validateSync();
@@ -64,4 +80,4 @@ module.exports = {
 
         return charityName;
     }
-}
+};

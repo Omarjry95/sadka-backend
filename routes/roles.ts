@@ -5,10 +5,11 @@ var router: Router = express.Router();
 
 var AppLogger = require("../logger");
 var send = require('../handlers/send-response');
+var { verifyJwt, verifyRequiredScopes, scopes } = require("../middlewares/oauth2");
 var Role = require("../schema/Role");
 var RoleService = require("../services/roleService");
 
-router.get('/', async (req, res, next) => {
+router.get('/', verifyJwt(), verifyRequiredScopes([scopes.unrestricted]), async (req, res, next) => {
     try {
         const roles: IRoleSchema[] = await RoleService.getAllRoles();
 

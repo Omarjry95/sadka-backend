@@ -13,13 +13,14 @@ var router: Router = express.Router();
 var AppLogger = require("../logger");
 var Constants = require("../constants");
 var send = require('../handlers/send-response');
+var { verifyJwt, verifyRequiredScopes, scopes } = require("../middlewares/oauth2");
 var User = require("../schema/User");
 var UserService = require("../services/userService");
 var RoleService = require("../services/roleService");
 var performRequestBodyValidation = require("../handlers/request-body-validation");
 var performRequestBodyDataValidation = require("../handlers/request-body-data-validation");
 
-router.post('/', async (req: Request<any, any, TypeOf<typeof ICreateUserRequestBody>>, res: Response, next: NextFunction) => {
+router.post('/', verifyJwt(), verifyRequiredScopes([scopes.unrestricted]), async (req: Request<any, any, TypeOf<typeof ICreateUserRequestBody>>, res: Response, next: NextFunction) => {
 
   const { body, originalUrl } = req;
   const { email, password, lastName, firstName, charityName, role } = body;

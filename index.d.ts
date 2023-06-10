@@ -10,4 +10,8 @@ declare module 'express' {
     export interface Response  {
         locals: Locals;
     }
+
+    export interface Request {
+        userId?: string
+    }
 }

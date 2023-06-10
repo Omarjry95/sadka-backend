@@ -24,6 +24,8 @@ module.exports = {
     ],
     requestBodyValidationError: (path: string): string[] => ["Runtime type validation".red + " for body of request ".white + path.red + " has failed".red],
     requestBodyDataValidationError: (path: string): string[] => ["Data validation".red + " for body of request ".white + path.red + " has failed".red],
+    userAuthSuccess: (path: string): string[] => ["User".green + " has been " + "authenticated successfully".green + " for usage of this endpoint: " + path.green],
+    userAuthError: (path: string): string[] => ["User authentication".red + " was " + "rejected".red + " while trying to use this endpoint: " + path.red],
     dataFetchedSuccess: (model: string): string[] => ["Requested documents of model ".white + model.green + " has been ".white + "fetched".green +
         " successfully".white],
     documentCreatedSuccess: (model: string): string[] => ["Document of model ".white + model.green + " has been ".white + "created".green +
@@ -37,4 +39,4 @@ module.exports = {
     firebaseUserWithSameEmailExists: (): string[] => ["A user with the same email".red + " you provided ".white + "already exists".red +
         " in our ".white + "firebase".red + " database.".white],
     seedsInserted: (model: string): string[] => ["Seeds".green + " for ".white + model.green + " have been inserted seccessfully.".white]
-}
+};

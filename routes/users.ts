@@ -7,13 +7,13 @@ import {auth} from "firebase-admin";
 import {IUserSchema} from "../models/schema/IUserSchema";
 import {HydratedDocument} from "mongoose";
 import {IUserRoleServiceResponse} from "../models/routes/IUserRoleServiceResponse";
-import {IUserDetailsRequestBody} from "../models/routes/IUserDetailsRequestBody";
 
 var router: Router = express.Router();
 var AppLogger = require("../logger");
 var Constants = require("../constants");
 var send = require('../handlers/send-response');
 var { verifyJwt, verifyRequiredScopes, scopes } = require("../middlewares/oauth2");
+var authenticateFirebaseUser = require("../middlewares/firebase-auth");
 var User = require("../schema/User");
 var UserService = require("../services/userService");
 var RoleService = require("../services/roleService");
@@ -77,15 +77,13 @@ router.post('/', verifyJwt(), verifyRequiredScopes([scopes.unrestricted]), async
   catch (e: any) { next(e); }
 });
 
-router.post('/details', async (req: Request<any, any, TypeOf<typeof IUserDetailsRequestBody>>, res: Response, next: NextFunction) => {
+router.get('/details', authenticateFirebaseUser, async (req: Request, res: Response, next: NextFunction) => {
 
-  const { body } = req;
-  const { id } = body;
+  const { userId = '' } = req;
 
   try {
-    performRequestBodyValidation(req, IUserDetailsRequestBody);
 
-    const user: IUserSchema = await UserService.getUserById(id);
+    const user: IUserSchema = await UserService.getUserById(userId);
 
     const roleIndex: number = await RoleService.getUserRoleIndex(user.role.toString());
 
@@ -97,7 +95,7 @@ router.post('/details', async (req: Request<any, any, TypeOf<typeof IUserDetails
       message: AppLogger.messages.dataFetchedSuccess(User.modelName)[0],
       body: {
         ...responseBodyInit,
-        ...body,
+        id: userId,
         role: roleIndex
       }
     }

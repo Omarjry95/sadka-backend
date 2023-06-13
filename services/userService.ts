@@ -26,7 +26,6 @@ module.exports = {
         return user;
     },
     createUser: async (user: HydratedDocument<IUserSchema>): Promise<void> => {
-
         const userModelValidation: MongooseError.ValidationError | null = user.validateSync();
 
         if (userModelValidation) {

@@ -17,6 +17,7 @@ var authenticateFirebaseUser = require("../middlewares/firebase-auth");
 var User = require("../schema/User");
 var UserService = require("../services/userService");
 var RoleService = require("../services/roleService");
+var MailService = require("../services/mailService");
 var performRequestBodyValidation = require("../handlers/request-body-validation");
 var performRequestBodyDataValidation = require("../handlers/request-body-data-validation");
 
@@ -53,23 +54,28 @@ router.post('/', verifyJwt(), verifyRequiredScopes([scopes.unrestricted]), async
       return;
     }
     catch (e: any) {
-      const firebaseUserData: auth.CreateRequest = {
-        email,
-        password,
-        displayName: UserService.getDisplayName(isCitizen, firstName, lastName, charityName)
-      }
+      // const firebaseUserData: auth.CreateRequest = {
+      //   email,
+      //   password,
+      //   displayName: UserService.getDisplayName(isCitizen, firstName, lastName, charityName)
+      // }
 
-      const userUID: string = await UserService.createFirebaseUser(firebaseUserData);
+      // const userUID: string = await UserService.createFirebaseUser(firebaseUserData);
 
-      const user: HydratedDocument<IUserSchema> = new User({
-        _id: userUID,
-        firstName,
-        lastName,
-        charityName,
-        role: userRoleId
-      });
+      // const user: HydratedDocument<IUserSchema> = new User({
+      //   _id: userUID,
+      //   firstName,
+      //   lastName,
+      //   charityName,
+      //   role: userRoleId
+      // });
 
-      await UserService.createUser(user);
+      // await UserService.createUser(user);
+
+      await MailService(
+          [email],
+          "Vérification de votre compte Sadka",
+          "Veuillez vérifier votre compte Sadka en cliquant sur le lien ci dessous.");
 
       send({ message: AppLogger.messages.documentCreatedSuccess(User.modelName)[0] }, res, next);
     }
@@ -82,7 +88,6 @@ router.get('/details', authenticateFirebaseUser, async (req: Request, res: Respo
   const { userId = '' } = req;
 
   try {
-
     const user: IUserSchema = await UserService.getUserById(userId);
 
     const roleIndex: number = await RoleService.getUserRoleIndex(user.role.toString());

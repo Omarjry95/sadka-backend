@@ -54,28 +54,27 @@ router.post('/', verifyJwt(), verifyRequiredScopes([scopes.unrestricted]), async
       return;
     }
     catch (e: any) {
-      // const firebaseUserData: auth.CreateRequest = {
-      //   email,
-      //   password,
-      //   displayName: UserService.getDisplayName(isCitizen, firstName, lastName, charityName)
-      // }
+      const firebaseUserData: auth.CreateRequest = {
+        email,
+        password,
+        displayName: UserService.getDisplayName(isCitizen, firstName, lastName, charityName)
+      }
 
-      // const userUID: string = await UserService.createFirebaseUser(firebaseUserData);
+      const userUID: string = await UserService.createFirebaseUser(firebaseUserData);
 
-      // const user: HydratedDocument<IUserSchema> = new User({
-      //   _id: userUID,
-      //   firstName,
-      //   lastName,
-      //   charityName,
-      //   role: userRoleId
-      // });
+      const user: HydratedDocument<IUserSchema> = new User({
+        _id: userUID,
+        firstName,
+        lastName,
+        charityName,
+        role: userRoleId
+      });
 
-      // await UserService.createUser(user);
+      await UserService.createUser(user);
 
-      await MailService(
-          [email],
-          "Vérification de votre compte Sadka",
-          "Veuillez vérifier votre compte Sadka en cliquant sur le lien ci dessous.");
+      const link: string = await UserService.generateEmailVerificationLink(email);
+
+      await MailService([email], { link });
 
       send({ message: AppLogger.messages.documentCreatedSuccess(User.modelName)[0] }, res, next);
     }

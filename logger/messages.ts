@@ -39,6 +39,9 @@ module.exports = {
     mailSendingError: (emailAddresses: string[]): string[] => ["An ".white + "error".red + " has occured while trying to ".white + "send an e-mail".red +
         " to the following address: ".white + emailAddresses.join(", ").red],
     firebaseUserNotCreated: (): string[] => ["User has failed".red + " to add to ".white + "Firebase".red],
+    firebaseEmailVerificationLinkGeneratedSuccess: (): string[] => ["The ".white + "Firebase email verification link".green + " has been generated ".white +
+        "successfully".green],
+    firebaseEmailVerificationLinkGeneratedError: (): string[] => ["The ".white + "firebase email verification link".red + " has ".white + "failed to generate".red],
     userWithSameIdExists: (): string[] => ["A user with the same ID".red + " you provided ".white + "already exists".red + " in our database.".white],
     firebaseUserWithSameEmailExists: (): string[] => ["A user with the same email".red + " you provided ".white + "already exists".red +
         " in our ".white + "firebase".red + " database.".white],

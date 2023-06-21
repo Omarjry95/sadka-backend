@@ -78,5 +78,21 @@ module.exports = {
         }
 
         return charityName;
+    },
+    generateEmailVerificationLink: async (email: string): Promise<string> => {
+        try {
+            const link: string = await auth().generateEmailVerificationLink(email);
+
+            AppLogger.log(AppLogger.messages.firebaseEmailVerificationLinkGeneratedSuccess());
+
+            return link;
+        }
+        catch (e: any) {
+            console.log(e);
+            throw new Error(
+                AppLogger.stringifyToThrow(
+                    AppLogger.messages.firebaseEmailVerificationLinkGeneratedError()
+                ));
+        }
     }
 };

@@ -2,15 +2,17 @@ const { createTransport } = require("nodemailer");
 const Email = require('email-templates');
 const AppLogger = require("../logger");
 
-module.exports = async (receivers: string[], locals: Object) => {
+const { SMTP_HOST, SMTP_USERNAME, SMTP_PASSWORD } = process.env;
+
+module.exports = async (receivers: string[], template: string, locals: Object) => {
     try {
         const transport = createTransport({
-            host: "smtp-relay.sendinblue.com",
+            host: SMTP_HOST,
             port: 587,
             secure: false,
             auth: {
-                user: "omarjry9@gmail.com",
-                pass: "WLhmF7EfQ5IUpkK8"
+                user: SMTP_USERNAME,
+                pass: SMTP_PASSWORD
             }
         });
 
@@ -21,15 +23,12 @@ module.exports = async (receivers: string[], locals: Object) => {
         });
 
         await email.send({
-            template: 'account-verification',
+            template,
             message: { to: receivers.join(", ") },
             locals
         });
-
-        AppLogger.log(AppLogger.messages.mailSendingSuccess(receivers));
     }
     catch (e: any) {
-        console.log(e);
         AppLogger.log(AppLogger.messages.mailSendingError(receivers));
     }
 }

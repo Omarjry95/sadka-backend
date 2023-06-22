@@ -88,7 +88,6 @@ module.exports = {
             return link;
         }
         catch (e: any) {
-            console.log(e);
             throw new Error(
                 AppLogger.stringifyToThrow(
                     AppLogger.messages.firebaseEmailVerificationLinkGeneratedError()

@@ -12,6 +12,7 @@ declare module 'express' {
     }
 
     export interface Request {
-        userId?: string
+        userId?: string,
+        userEmail?: string
     }
 }

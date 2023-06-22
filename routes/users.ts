@@ -74,7 +74,7 @@ router.post('/', verifyJwt(), verifyRequiredScopes([scopes.unrestricted]), async
 
       const link: string = await UserService.generateEmailVerificationLink(email);
 
-      await MailService([email], { link });
+      await MailService([email], 'account-verification', { link });
 
       send({ message: AppLogger.messages.documentCreatedSuccess(User.modelName)[0] }, res, next);
     }
@@ -105,6 +105,22 @@ router.get('/details', authenticateFirebaseUser, async (req: Request, res: Respo
     }
 
     send(response, res, next);
+  }
+  catch (e: any) { next(e); }
+});
+
+router.get('/send-email-verification-link', authenticateFirebaseUser, async (req: Request, res: Response, next: NextFunction) => {
+
+  const { userEmail = '' } = req;
+
+  try {
+    const link: string = await UserService.generateEmailVerificationLink(userEmail);
+
+    const receivers: string[] = [userEmail];
+
+    await MailService(receivers, 'account-verification', { link });
+
+    send({ message: AppLogger.messages.mailSendingSuccess(receivers)[0] }, res, next);
   }
   catch (e: any) { next(e); }
 });

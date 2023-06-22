@@ -17,6 +17,7 @@ module.exports = async (req: Request, res: Response, next: NextFunction) => {
             const decodedAuthToken: auth.DecodedIdToken = await auth().verifyIdToken(authToken);
 
             req.userId = decodedAuthToken.uid;
+            req.userEmail = decodedAuthToken.email;
 
             AppLogger.log(AppLogger.messages.userAuthSuccess(originalUrl));
 

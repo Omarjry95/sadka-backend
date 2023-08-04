@@ -2,13 +2,36 @@ import {NextFunction} from "express";
 import {auth} from "firebase-admin";
 import {IUserSchema} from "../models/schema/IUserSchema";
 import {Error as MongooseError, HydratedDocument} from "mongoose";
+import {IRoleSchema} from "../models/schema/IRoleSchema";
+import {IUsersByTypeServiceResponse} from "../models/routes/IUsersByTypeServiceResponse";
 
 var AppLogger = require("../logger");
 var Constants = require("../constants/user");
 const User = require("../schema/User");
+const Role = require("../schema/Role");
 const gatherValidationMessages = require("../handlers/mongoose-schema-validation-messages");
 
 module.exports = {
+    getUsersByRole: (roleIndex: 0 | 1 | 2): Promise<IUsersByTypeServiceResponse[]> => Role.find()
+        .then((roles: IRoleSchema[]) => {
+            const role: IRoleSchema = roles[roleIndex];
+
+            if (!role) { throw new Error(); }
+
+            return role._id;
+        })
+        .then((roleId: any) => User.find({ role: { _id: roleId } }))
+        .then((users: IUserSchema[]) => users.map((user: IUserSchema) => ({
+            id: user._id,
+            lastName: user.lastName,
+            firstName: user.firstName,
+            charityName: user.charityName
+        })))
+        .catch(() => {
+            throw new Error(
+                AppLogger.stringifyToThrow(
+                    AppLogger.messages.documentDoesNotExist(User.modelName)))
+        }),
     getUserById: async (id: string): Promise<IUserSchema> => {
         let user: IUserSchema | null = null;
 

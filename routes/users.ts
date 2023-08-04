@@ -7,6 +7,7 @@ import {auth} from "firebase-admin";
 import {IUserSchema} from "../models/schema/IUserSchema";
 import {HydratedDocument} from "mongoose";
 import {IUserRoleServiceResponse} from "../models/routes/IUserRoleServiceResponse";
+import {IUsersByTypeServiceResponse} from "../models/routes/IUsersByTypeServiceResponse";
 
 var router: Router = express.Router();
 var AppLogger = require("../logger");
@@ -20,6 +21,20 @@ var RoleService = require("../services/roleService");
 var MailService = require("../services/mailService");
 var performRequestBodyValidation = require("../handlers/request-body-validation");
 var performRequestBodyDataValidation = require("../handlers/request-body-data-validation");
+
+router.get('/associations'/*, authenticateFirebaseUser*/, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const users: IUsersByTypeServiceResponse[] = await UserService.getUsersByRole(1);
+
+    const response: Locals = {
+      message: AppLogger.messages.dataFetchedSuccess(User.modelName)[0],
+      body: users
+    }
+
+    send(response, res, next);
+  }
+  catch (e: any) { next(e); }
+});
 
 router.post('/', verifyJwt(), verifyRequiredScopes([scopes.unrestricted]), async (req: Request<any, any, TypeOf<typeof ICreateUserRequestBody>>, res: Response, next: NextFunction) => {
 

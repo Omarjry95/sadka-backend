@@ -20,9 +20,7 @@ router.get('/', verifyJwt(), verifyRequiredScopes([scopes.unrestricted]), async 
 
         send(response, res, next);
     }
-    catch (e: any) {
-        next(e);
-    }
+    catch (e: any) { next(e); }
 });
 
 module.exports = router;

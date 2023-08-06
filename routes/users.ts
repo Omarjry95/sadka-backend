@@ -28,7 +28,11 @@ router.get('/associations'/*, authenticateFirebaseUser*/, async (req: Request, r
 
     const response: Locals = {
       message: AppLogger.messages.dataFetchedSuccess(User.modelName)[0],
-      body: users
+      body: users.map((user: IUsersByTypeServiceResponse) => ({
+        _id: user.id,
+        label: user.charityName,
+        photoUrl: "https://img.freepik.com/vecteurs-libre/vecteur-degrade-logo-colore-oiseau_343694-1365.jpg"
+      }))
     }
 
     send(response, res, next);

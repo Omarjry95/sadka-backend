@@ -4,6 +4,7 @@ import {IUserSchema} from "../models/schema/IUserSchema";
 import {Error as MongooseError, HydratedDocument} from "mongoose";
 import {IRoleSchema} from "../models/schema/IRoleSchema";
 import {IUsersByTypeServiceResponse} from "../models/routes/IUsersByTypeServiceResponse";
+import {undefined} from "io-ts";
 
 var AppLogger = require("../logger");
 var Constants = require("../constants/user");
@@ -13,6 +14,7 @@ const gatherValidationMessages = require("../handlers/mongoose-schema-validation
 
 module.exports = {
     getUsersByRole: (roleIndex: 0 | 1 | 2): Promise<IUsersByTypeServiceResponse[]> => Role.find()
+        .sort({ _id: 1 })
         .then((roles: IRoleSchema[]) => {
             const role: IRoleSchema = roles[roleIndex];
 
@@ -27,6 +29,22 @@ module.exports = {
             firstName: user.firstName,
             charityName: user.charityName
         })))
+        .then(async (users: IUsersByTypeServiceResponse[]) => {
+            const usersRecords: auth.GetUsersResult = await auth().getUsers(users.map((user: IUsersByTypeServiceResponse) => ({ uid: user.id })));
+
+            const { users: usersFound, notFound: usersNotFound } = usersRecords;
+
+            if (usersNotFound.length > 0 || usersFound.length !== users.length) { throw new Error(); }
+
+            return users.map((user: IUsersByTypeServiceResponse) => {
+                const userFound: auth.UserRecord | undefined = usersFound.find((u: auth.UserRecord) => u.uid === user.id);
+
+                return {
+                    ...user,
+                    photoUrl: userFound ? userFound.photoURL : undefined
+                }
+            })
+        })
         .catch(() => {
             throw new Error(
                 AppLogger.stringifyToThrow(

@@ -11,7 +11,7 @@ module.exports = (req: Request, res: Response, next: NextFunction) => {
     const { status, message, body } = res.locals as Locals;
 
     /* Catch wrong routing and forward to Error handler */
-    if (!routes.map((route: any) => route.prefix).includes('/'.concat(path.split('/')[1]))) {
+    if (!status) {
         next(new Error(
             AppLogger.stringifyToThrow(
                 AppLogger.messages.routeLostError(path))));
@@ -21,6 +21,6 @@ module.exports = (req: Request, res: Response, next: NextFunction) => {
 
     AppLogger.log(AppLogger.messages.requestSuccess(message, path));
 
-    res.status(status ?? 200)
+    res.status(status)
         .send(body ?? new SuccessResponse());
 }

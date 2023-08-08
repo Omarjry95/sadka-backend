@@ -27,6 +27,7 @@ router.get('/associations'/*, authenticateFirebaseUser*/, async (req: Request, r
     const users: IUsersByTypeServiceResponse[] = await UserService.getUsersByRole(1);
 
     const response: Locals = {
+      status: 200,
       message: AppLogger.messages.dataFetchedSuccess(User.modelName)[0],
       body: users.map((user: IUsersByTypeServiceResponse) => ({
         _id: user.id,
@@ -95,7 +96,10 @@ router.post('/', verifyJwt(), verifyRequiredScopes([scopes.unrestricted]), async
 
       await MailService([email], 'account-verification', { link });
 
-      send({ message: AppLogger.messages.documentCreatedSuccess(User.modelName)[0] }, res, next);
+      send({
+        status: 200,
+        message: AppLogger.messages.documentCreatedSuccess(User.modelName)[0]
+      }, res, next);
     }
   }
   catch (e: any) { next(e); }
@@ -110,16 +114,18 @@ router.get('/details', authenticateFirebaseUser, async (req: Request, res: Respo
 
     const roleIndex: number = await RoleService.getUserRoleIndex(user.role.toString());
 
-    const { firstName, lastName, charityName } = user;
+    const { firstName, lastName, charityName, defaultAssociation } = user;
 
     const responseBodyInit: Object = roleIndex !== 1 ? { firstName, lastName } : { charityName };
 
     const response: Locals = {
+      status: 200,
       message: AppLogger.messages.dataFetchedSuccess(User.modelName)[0],
       body: {
         ...responseBodyInit,
         id: userId,
-        role: roleIndex
+        role: roleIndex,
+        defaultAssociation: defaultAssociation ? defaultAssociation.toString() : undefined
       }
     }
 
@@ -139,7 +145,10 @@ router.get('/send-email-verification-link', authenticateFirebaseUser, async (req
 
     await MailService(receivers, 'account-verification', { link });
 
-    send({ message: AppLogger.messages.mailSendingSuccess(receivers)[0] }, res, next);
+    send({
+      status: 200,
+      message: AppLogger.messages.mailSendingSuccess(receivers)[0]
+    }, res, next);
   }
   catch (e: any) { next(e); }
 });

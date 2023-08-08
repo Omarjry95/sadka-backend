@@ -14,6 +14,7 @@ router.get('/', verifyJwt(), verifyRequiredScopes([scopes.unrestricted]), async 
         const roles: IRoleSchema[] = await RoleService.getAllRoles();
 
         const response: Locals = {
+            status: 200,
             message: AppLogger.messages.dataFetchedSuccess(Role.modelName)[0],
             body: roles
         }

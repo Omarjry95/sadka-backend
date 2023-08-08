@@ -6,6 +6,7 @@ const Role = require("../schema/Role");
 
 module.exports = {
     getAllRoles: async (): Promise<IRoleSchema[]> => Role.find()
+        .sort({ _id: 1 })
         .then((roles: IRoleSchema[]) => {
             if (roles.length === 0) { throw new Error(); }
 
@@ -38,6 +39,7 @@ module.exports = {
     //     return role;
     // },
     getUserRoleIndex: async (id: string): Promise<number> => Role.find()
+        .sort({ _id: 1 })
         .then((roles: IRoleSchema[]) => {
             const roleIndex: number = roles.findIndex((role: IRoleSchema) => role._id.toString() === id);
 
@@ -51,7 +53,8 @@ module.exports = {
                     AppLogger.messages.documentDoesNotExist(Role.modelName)))
         }),
     isUserCitizen: async (roleId: string): Promise<IUserRoleServiceResponse> => {
-        const roles: IRoleSchema[] = await Role.find();
+        const roles: IRoleSchema[] = await Role.find()
+            .sort({ _id: 1 });
 
         roles.pop();
 

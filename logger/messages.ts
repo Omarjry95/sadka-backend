@@ -38,6 +38,7 @@ module.exports = {
         " to the following address: ".white + emailAddresses.join(", ").green],
     mailSendingError: (emailAddresses: string[]): string[] => ["An ".white + "error".red + " has occured while trying to ".white + "send an e-mail".red +
         " to the following address: ".white + emailAddresses.join(", ").red],
+    firebaseUserNotFound: (): string[] => ["Firebase ".white + "User".red + " was ".white + "not found".red],
     firebaseUserNotCreated: (): string[] => ["User has failed".red + " to add to ".white + "Firebase".red],
     firebaseEmailVerificationLinkGeneratedSuccess: (): string[] => ["The ".white + "Firebase email verification link".green + " has been generated ".white +
         "successfully".green],

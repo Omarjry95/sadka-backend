@@ -22,7 +22,7 @@ var MailService = require("../services/mailService");
 var performRequestBodyValidation = require("../handlers/request-body-validation");
 var performRequestBodyDataValidation = require("../handlers/request-body-data-validation");
 
-router.get('/associations'/*, authenticateFirebaseUser*/, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/associations', authenticateFirebaseUser, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const users: IUsersByTypeServiceResponse[] = await UserService.getUsersByRole(1);
 

@@ -30,6 +30,8 @@ module.exports = {
         " successfully".white],
     documentCreatedSuccess: (model: string): string[] => ["Document of model ".white + model.green + " has been ".white + "created".green +
         " successfully".white],
+    documentUpdatedSuccess: (model: string): string[] => ["Document of model ".white + model.green + " has been ".white + "updated".green +
+    " successfully".white],
     documentDoesNotExist: (model: string): string[] => ["No document".red + " for the ".white + model.red +
     " with the criteria you provided has been found.".white
     ],

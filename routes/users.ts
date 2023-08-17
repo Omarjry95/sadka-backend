@@ -3,11 +3,16 @@ import {ICreateUserRequestBody} from "../models/routes/ICreateUserRequestBody";
 import {TypeOf} from "io-ts";
 import {IDataValidationObject} from "../models/app/IDataValidationObject";
 import {ValidationTypesEnum} from "../models/app/ValidationTypesEnum";
-import {auth} from "firebase-admin";
+import {auth, storage} from "firebase-admin";
 import {IUserSchema} from "../models/schema/IUserSchema";
-import {HydratedDocument} from "mongoose";
+import {HydratedDocument, Types} from "mongoose";
 import {IUserRoleServiceResponse} from "../models/routes/IUserRoleServiceResponse";
 import {IUsersByTypeServiceResponse} from "../models/routes/IUsersByTypeServiceResponse";
+import {IUpdateUserRequestBody} from "../models/routes/IUpdateUserRequestBody";
+import multer, { memoryStorage, Multer, StorageEngine } from "multer";
+
+const multerMemoryStorage: StorageEngine = memoryStorage();
+const upload: Multer = multer({ storage: multerMemoryStorage });
 
 var router: Router = express.Router();
 var AppLogger = require("../logger");
@@ -19,8 +24,38 @@ var User = require("../schema/User");
 var UserService = require("../services/userService");
 var RoleService = require("../services/roleService");
 var MailService = require("../services/mailService");
+var FileService = require("../services/fileService");
 var performRequestBodyValidation = require("../handlers/request-body-validation");
 var performRequestBodyDataValidation = require("../handlers/request-body-data-validation");
+
+router.get('/details', authenticateFirebaseUser, async (req: Request, res: Response, next: NextFunction) => {
+
+  const { userId = '' } = req;
+
+  try {
+    const user: IUserSchema = await UserService.getUserById(userId);
+
+    const roleIndex: number = await RoleService.getUserRoleIndex(user.role.toString());
+
+    const { firstName, lastName, charityName, defaultAssociation } = user;
+
+    const responseBodyInit: Object = roleIndex !== 1 ? { firstName, lastName } : { charityName };
+
+    const response: Locals = {
+      status: 200,
+      message: AppLogger.messages.dataFetchedSuccess(User.modelName)[0],
+      body: {
+        ...responseBodyInit,
+        id: userId,
+        role: roleIndex,
+        defaultAssociation: defaultAssociation ? defaultAssociation.toString() : undefined
+      }
+    }
+
+    send(response, res, next);
+  }
+  catch (e: any) { next(e); }
+});
 
 router.get('/associations', authenticateFirebaseUser, async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -105,33 +140,58 @@ router.post('/', verifyJwt(), verifyRequiredScopes([scopes.unrestricted]), async
   catch (e: any) { next(e); }
 });
 
-router.get('/details', authenticateFirebaseUser, async (req: Request, res: Response, next: NextFunction) => {
+router.put('/', upload.single('photo')/*, authenticateFirebaseUser*/, async (req: Request<any, any, TypeOf<typeof IUpdateUserRequestBody>>, res: Response, next: NextFunction) => {
 
-  const { userId = '' } = req;
+  const { body, file, originalUrl } = req;
+  const { id, lastName, firstName, charityName, defaultAssociation, role } = body;
+
+  const isUserCitizen: boolean = role === "0";
+
+  const roleBasedDataToValidate: IDataValidationObject[] = isUserCitizen ? [
+    { value: lastName, validations: [ValidationTypesEnum.NOT_BLANK] },
+    { value: firstName, validations: [ValidationTypesEnum.NOT_BLANK] }
+  ] : [
+    { value: charityName, validations: [ValidationTypesEnum.NOT_BLANK] }
+  ];
+
+  const dataToValidate: IDataValidationObject[] = [
+    ...roleBasedDataToValidate,
+    { value: id, validations: [ValidationTypesEnum.NOT_BLANK] }
+  ];
 
   try {
-    const user: IUserSchema = await UserService.getUserById(userId);
+    performRequestBodyValidation(req, IUpdateUserRequestBody);
+    performRequestBodyDataValidation(dataToValidate, originalUrl);
 
-    const roleIndex: number = await RoleService.getUserRoleIndex(user.role.toString());
+    const propertiesToUpdate = { lastName, firstName, charityName };
+    const propertiesToUnset = {};
 
-    const { firstName, lastName, charityName, defaultAssociation } = user;
-
-    const responseBodyInit: Object = roleIndex !== 1 ? { firstName, lastName } : { charityName };
-
-    const response: Locals = {
-      status: 200,
-      message: AppLogger.messages.dataFetchedSuccess(User.modelName)[0],
-      body: {
-        ...responseBodyInit,
-        id: userId,
-        role: roleIndex,
-        defaultAssociation: defaultAssociation ? defaultAssociation.toString() : undefined
-      }
+    if (defaultAssociation) {
+      Object.assign(propertiesToUpdate, { defaultAssociation });
+    }
+    else {
+      Object.assign(propertiesToUnset, { defaultAssociation: 1 });
     }
 
-    send(response, res, next);
+    await User.findByIdAndUpdate(id, {
+      ...propertiesToUpdate,
+      $unset: propertiesToUnset
+    });
+
+    if (file) {
+      await storage()
+        .bucket()
+        .file(FileService
+          .getFileNameWithExtension(file, id))
+        .save(file.buffer);
+    }
+
+    send({
+      status: 200,
+      message: AppLogger.messages.documentUpdatedSuccess(User.modelName)[0]
+    }, res, next);
   }
-  catch (e: any) { next(e); }
+  catch (e: any) { console.log(e); next(e); }
 });
 
 router.get('/send-email-verification-link', authenticateFirebaseUser, async (req: Request, res: Response, next: NextFunction) => {

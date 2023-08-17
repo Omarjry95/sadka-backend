@@ -9,7 +9,8 @@ module.exports = async () => {
         const firebaseAppOptions: AppOptions = {
             credential: cert(
                 require(GOOGLE_APPLICATION_CREDENTIALS as string)
-            )
+            ),
+            storageBucket: 'sadka-31ab2.appspot.com'
         }
 
         initializeApp(firebaseAppOptions);

@@ -1,5 +1,5 @@
 /* Imports */
-import express, { Express, Request, Response, NextFunction } from "express";
+import express, { Express } from "express";
 import path from 'path';
 import cookieParser from 'cookie-parser';
 import logger from 'morgan';
@@ -11,7 +11,7 @@ import logger from 'morgan';
 
 /* Node requirements */
 require('dotenv').config();
-var createError = require('http-errors');
+// var createError = require('http-errors');
 
 /* Custom utilities */
 const databaseConnect = require("./database");

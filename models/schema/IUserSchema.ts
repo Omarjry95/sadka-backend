@@ -5,5 +5,5 @@ export interface IUserSchema extends Document {
     firstName?: string,
     charityName?: string,
     role: Types.ObjectId,
-    defaultAssociation?: Types.ObjectId
+    defaultAssociation?: string
 }

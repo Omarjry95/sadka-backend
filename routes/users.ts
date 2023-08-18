@@ -5,7 +5,7 @@ import {IDataValidationObject} from "../models/app/IDataValidationObject";
 import {ValidationTypesEnum} from "../models/app/ValidationTypesEnum";
 import {auth, storage} from "firebase-admin";
 import {IUserSchema} from "../models/schema/IUserSchema";
-import {HydratedDocument, Types} from "mongoose";
+import {HydratedDocument} from "mongoose";
 import {IUserRoleServiceResponse} from "../models/routes/IUserRoleServiceResponse";
 import {IUsersByTypeServiceResponse} from "../models/routes/IUsersByTypeServiceResponse";
 import {IUpdateUserRequestBody} from "../models/routes/IUpdateUserRequestBody";
@@ -143,7 +143,8 @@ router.post('/', verifyJwt(), verifyRequiredScopes([scopes.unrestricted]), async
 router.put('/', upload.single('photo')/*, authenticateFirebaseUser*/, async (req: Request<any, any, TypeOf<typeof IUpdateUserRequestBody>>, res: Response, next: NextFunction) => {
 
   const { body, file, originalUrl } = req;
-  const { id, lastName, firstName, charityName, defaultAssociation, role } = body;
+  const { id, lastName, firstName, charityName, defaultAssociation,
+    isPhotoChanged, role } = body;
 
   const isUserCitizen: boolean = role === "0";
 
@@ -163,14 +164,16 @@ router.put('/', upload.single('photo')/*, authenticateFirebaseUser*/, async (req
     performRequestBodyValidation(req, IUpdateUserRequestBody);
     performRequestBodyDataValidation(dataToValidate, originalUrl);
 
-    const propertiesToUpdate = { lastName, firstName, charityName };
-    const propertiesToUnset = {};
+    let propertiesToUpdate: Object = { lastName, firstName, charityName };
+    let propertiesToUnset: Object = { defaultAssociation: '' };
 
     if (defaultAssociation) {
-      Object.assign(propertiesToUpdate, { defaultAssociation });
-    }
-    else {
-      Object.assign(propertiesToUnset, { defaultAssociation: 1 });
+      propertiesToUpdate = {
+        ...propertiesToUpdate,
+        defaultAssociation: defaultAssociation
+      };
+
+      propertiesToUnset = {};
     }
 
     await User.findByIdAndUpdate(id, {
@@ -184,6 +187,17 @@ router.put('/', upload.single('photo')/*, authenticateFirebaseUser*/, async (req
         .file(FileService
           .getFileNameWithExtension(file, id))
         .save(file.buffer);
+    } else if (isPhotoChanged) {
+      const [storageFiles] = await storage().bucket().getFiles();
+
+      const userSavedPhoto = storageFiles.find((storageFile) => storageFile.name.startsWith(id));
+
+      if (userSavedPhoto) {
+        await storage()
+          .bucket()
+          .file(userSavedPhoto.name)
+          .delete();
+      }
     }
 
     send({

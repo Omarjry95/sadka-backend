@@ -15,7 +15,7 @@ module.exports = model('User', new Schema<IUserSchema>({
         required: true
     },
     defaultAssociation: {
-        type: Schema.Types.ObjectId,
+        type: String,
         ref: "User",
         required: false
     }

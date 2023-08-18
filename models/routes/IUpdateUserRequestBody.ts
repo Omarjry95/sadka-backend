@@ -13,6 +13,7 @@ export const IUpdateUserRequestBody = intersection([
         lastName: union([string, optional]),
         firstName: union([string, optional]),
         charityName: union([string, optional]),
-        defaultAssociation: union([string, optional])
+        defaultAssociation: union([string, optional]),
+        isPhotoChanged: union([keyof({ "1": null }), optional])
     })
 ]);

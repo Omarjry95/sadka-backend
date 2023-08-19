@@ -5,7 +5,6 @@ var AppLogger = require("../../logger");
 var { authTokenPrefix } = require("../../constants");
 
 module.exports = async (req: Request, res: Response, next: NextFunction) => {
-
     try {
         const { headers, originalUrl } = req;
 

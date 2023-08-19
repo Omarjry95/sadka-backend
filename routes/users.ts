@@ -9,10 +9,6 @@ import {HydratedDocument} from "mongoose";
 import {IUserRoleServiceResponse} from "../models/routes/IUserRoleServiceResponse";
 import {IUsersByTypeServiceResponse} from "../models/routes/IUsersByTypeServiceResponse";
 import {IUpdateUserRequestBody} from "../models/routes/IUpdateUserRequestBody";
-import multer, { memoryStorage, Multer, StorageEngine } from "multer";
-
-const multerMemoryStorage: StorageEngine = memoryStorage();
-const upload: Multer = multer({ storage: multerMemoryStorage });
 
 var router: Router = express.Router();
 var AppLogger = require("../logger");
@@ -27,6 +23,7 @@ var MailService = require("../services/mailService");
 var FileService = require("../services/fileService");
 var performRequestBodyValidation = require("../handlers/request-body-validation");
 var performRequestBodyDataValidation = require("../handlers/request-body-data-validation");
+var { multerSingle } = require("../middlewares/multer");
 
 router.get('/details', authenticateFirebaseUser, async (req: Request, res: Response, next: NextFunction) => {
 
@@ -140,72 +137,33 @@ router.post('/', verifyJwt(), verifyRequiredScopes([scopes.unrestricted]), async
   catch (e: any) { next(e); }
 });
 
-router.put('/', upload.single('photo')/*, authenticateFirebaseUser*/, async (req: Request<any, any, TypeOf<typeof IUpdateUserRequestBody>>, res: Response, next: NextFunction) => {
+router.put('/', multerSingle('photo'), authenticateFirebaseUser, async (req: Request<any, any, TypeOf<typeof IUpdateUserRequestBody>>, res: Response, next: NextFunction) => {
 
-  const { body, file, originalUrl } = req;
-  const { id, lastName, firstName, charityName, defaultAssociation,
+  const { body, file, originalUrl, userId = '' } = req;
+  const { lastName, firstName, charityName, defaultAssociation,
     isPhotoChanged, role } = body;
 
   const isUserCitizen: boolean = role === "0";
 
-  const roleBasedDataToValidate: IDataValidationObject[] = isUserCitizen ? [
+  const dataToValidate: IDataValidationObject[] = isUserCitizen ? [
     { value: lastName, validations: [ValidationTypesEnum.NOT_BLANK] },
     { value: firstName, validations: [ValidationTypesEnum.NOT_BLANK] }
   ] : [
     { value: charityName, validations: [ValidationTypesEnum.NOT_BLANK] }
   ];
 
-  const dataToValidate: IDataValidationObject[] = [
-    ...roleBasedDataToValidate,
-    { value: id, validations: [ValidationTypesEnum.NOT_BLANK] }
-  ];
-
   try {
     performRequestBodyValidation(req, IUpdateUserRequestBody);
     performRequestBodyDataValidation(dataToValidate, originalUrl);
 
-    let propertiesToUpdate: Object = { lastName, firstName, charityName };
-    let propertiesToUnset: Object = { defaultAssociation: '' };
-
-    if (defaultAssociation) {
-      propertiesToUpdate = {
-        ...propertiesToUpdate,
-        defaultAssociation: defaultAssociation
-      };
-
-      propertiesToUnset = {};
-    }
-
-    await User.findByIdAndUpdate(id, {
-      ...propertiesToUpdate,
-      $unset: propertiesToUnset
-    });
-
-    if (file) {
-      await storage()
-        .bucket()
-        .file(FileService
-          .getFileNameWithExtension(file, id))
-        .save(file.buffer);
-    } else if (isPhotoChanged) {
-      const [storageFiles] = await storage().bucket().getFiles();
-
-      const userSavedPhoto = storageFiles.find((storageFile) => storageFile.name.startsWith(id));
-
-      if (userSavedPhoto) {
-        await storage()
-          .bucket()
-          .file(userSavedPhoto.name)
-          .delete();
-      }
-    }
+    await UserService.updateUser(userId, lastName, firstName, charityName, defaultAssociation, file, isPhotoChanged);
 
     send({
       status: 200,
       message: AppLogger.messages.documentUpdatedSuccess(User.modelName)[0]
     }, res, next);
   }
-  catch (e: any) { console.log(e); next(e); }
+  catch (e: any) { next(e); }
 });
 
 router.get('/send-email-verification-link', authenticateFirebaseUser, async (req: Request, res: Response, next: NextFunction) => {

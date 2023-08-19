@@ -1,15 +1,16 @@
 import {NextFunction} from "express";
-import {auth} from "firebase-admin";
+import {auth, storage} from "firebase-admin";
 import {IUserSchema} from "../models/schema/IUserSchema";
 import {Error as MongooseError, HydratedDocument} from "mongoose";
 import {IRoleSchema} from "../models/schema/IRoleSchema";
 import {IUsersByTypeServiceResponse} from "../models/routes/IUsersByTypeServiceResponse";
-import {undefined} from "io-ts";
 
 var AppLogger = require("../logger");
+var { firebaseStoragePublicUrl } = require("../constants");
 var Constants = require("../constants/user");
 const User = require("../schema/User");
 const Role = require("../schema/Role");
+var FileService = require("./fileService");
 const gatherValidationMessages = require("../handlers/mongoose-schema-validation-messages");
 
 module.exports = {
@@ -104,6 +105,41 @@ module.exports = {
         }
 
         return userUID;
+    },
+    updateUser: async (id: string, lastName?: string, firstName?: string, charityName?: string, defaultAssociation?: string, file?: Express.Multer.File,
+                       isPhotoChanged?: string) => {
+
+        let propertiesToUpdate: Object = { lastName, firstName, charityName };
+        let propertiesToUnset: Object = { defaultAssociation: '' };
+
+        if (defaultAssociation) {
+            propertiesToUpdate = {...propertiesToUpdate, defaultAssociation};
+            propertiesToUnset = { };
+        }
+
+        await User.findByIdAndUpdate(id, {...propertiesToUpdate, $unset: propertiesToUnset});
+
+        const storageBucket = storage().bucket();
+
+        if (file) {
+            const fileName: string = FileService.getFileNameWithExtension(file, id);
+
+            await storageBucket.file(fileName)
+              .save(file.buffer);
+
+            await auth().updateUser(id, { photoURL: firebaseStoragePublicUrl.concat(fileName) });
+        } else if (isPhotoChanged) {
+            const [storageFiles] = await storageBucket.getFiles();
+
+            const userSavedPhoto = storageFiles.find((storageFile) => storageFile.name.startsWith(id));
+
+            if (userSavedPhoto) {
+                await storageBucket.file(userSavedPhoto.name)
+                  .delete();
+
+                await auth().updateUser(id, { photoURL: undefined });
+            }
+        }
     },
     throwIfFirebaseUserExists: async (email: string, next: NextFunction) => {
         await auth()

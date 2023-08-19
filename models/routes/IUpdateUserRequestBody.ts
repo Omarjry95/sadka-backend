@@ -2,7 +2,6 @@ import { intersection, partial, string, type, undefined as optional, union, keyo
 
 export const IUpdateUserRequestBody = intersection([
     type({
-        id: string,
         role: keyof({
             "0": null,
             "1": null,

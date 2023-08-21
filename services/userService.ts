@@ -6,7 +6,6 @@ import {IRoleSchema} from "../models/schema/IRoleSchema";
 import {IUsersByTypeServiceResponse} from "../models/routes/IUsersByTypeServiceResponse";
 
 var AppLogger = require("../logger");
-var { firebaseStoragePublicUrl } = require("../constants");
 var Constants = require("../constants/user");
 const User = require("../schema/User");
 const Role = require("../schema/Role");
@@ -28,24 +27,9 @@ module.exports = {
             id: user._id,
             lastName: user.lastName,
             firstName: user.firstName,
-            charityName: user.charityName
+            charityName: user.charityName,
+            photo: user.photo
         })))
-        .then(async (users: IUsersByTypeServiceResponse[]) => {
-            const usersRecords: auth.GetUsersResult = await auth().getUsers(users.map((user: IUsersByTypeServiceResponse) => ({ uid: user.id })));
-
-            const { users: usersFound, notFound: usersNotFound } = usersRecords;
-
-            if (usersNotFound.length > 0 || usersFound.length !== users.length) { throw new Error(); }
-
-            return users.map((user: IUsersByTypeServiceResponse) => {
-                const userFound: auth.UserRecord | undefined = usersFound.find((u: auth.UserRecord) => u.uid === user.id);
-
-                return {
-                    ...user,
-                    photoUrl: userFound ? userFound.photoURL : undefined
-                }
-            })
-        })
         .catch(() => {
             throw new Error(
                 AppLogger.stringifyToThrow(
@@ -110,14 +94,9 @@ module.exports = {
                        isPhotoChanged?: string) => {
 
         let propertiesToUpdate: Object = { lastName, firstName, charityName };
-        let propertiesToUnset: Object = { defaultAssociation: '' };
+        let propertiesToUnset: Object = { };
 
-        if (defaultAssociation) {
-            propertiesToUpdate = {...propertiesToUpdate, defaultAssociation};
-            propertiesToUnset = { };
-        }
-
-        await User.findByIdAndUpdate(id, {...propertiesToUpdate, $unset: propertiesToUnset});
+        Object.assign(defaultAssociation ? propertiesToUpdate : propertiesToUnset, { defaultAssociation: defaultAssociation ?? '' });
 
         const storageBucket = storage().bucket();
 
@@ -127,7 +106,10 @@ module.exports = {
             await storageBucket.file(fileName)
               .save(file.buffer);
 
-            await auth().updateUser(id, { photoURL: firebaseStoragePublicUrl.concat(fileName) });
+            propertiesToUpdate = {
+                ...propertiesToUpdate,
+                photo: fileName
+            }
         } else if (isPhotoChanged) {
             const [storageFiles] = await storageBucket.getFiles();
 
@@ -137,9 +119,14 @@ module.exports = {
                 await storageBucket.file(userSavedPhoto.name)
                   .delete();
 
-                await auth().updateUser(id, { photoURL: undefined });
+                propertiesToUnset = {
+                    ...propertiesToUnset,
+                    photo: ''
+                }
             }
         }
+
+        await User.findByIdAndUpdate(id, {...propertiesToUpdate, $unset: propertiesToUnset});
     },
     throwIfFirebaseUserExists: async (email: string, next: NextFunction) => {
         await auth()

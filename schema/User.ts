@@ -6,9 +6,10 @@ module.exports = model('User', new Schema<IUserSchema>({
         type: String,
         required: true
     },
-    lastName: { type: String },
-    firstName: { type: String },
-    charityName: { type: String },
+    lastName: { type: String, required: false },
+    firstName: { type: String, required: false },
+    charityName: { type: String, required: false },
+    photo: { type: String, required: false },
     role: {
         type: Schema.Types.ObjectId,
         ref: "Role",

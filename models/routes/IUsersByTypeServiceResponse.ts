@@ -3,5 +3,5 @@ export interface IUsersByTypeServiceResponse {
     lastName?: string,
     firstName?: string,
     charityName?: string,
-    photoUrl?: string
+    photo?: string
 }

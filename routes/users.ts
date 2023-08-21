@@ -3,7 +3,7 @@ import {ICreateUserRequestBody} from "../models/routes/ICreateUserRequestBody";
 import {TypeOf} from "io-ts";
 import {IDataValidationObject} from "../models/app/IDataValidationObject";
 import {ValidationTypesEnum} from "../models/app/ValidationTypesEnum";
-import {auth, storage} from "firebase-admin";
+import {auth} from "firebase-admin";
 import {IUserSchema} from "../models/schema/IUserSchema";
 import {HydratedDocument} from "mongoose";
 import {IUserRoleServiceResponse} from "../models/routes/IUserRoleServiceResponse";
@@ -20,7 +20,6 @@ var User = require("../schema/User");
 var UserService = require("../services/userService");
 var RoleService = require("../services/roleService");
 var MailService = require("../services/mailService");
-var FileService = require("../services/fileService");
 var performRequestBodyValidation = require("../handlers/request-body-validation");
 var performRequestBodyDataValidation = require("../handlers/request-body-data-validation");
 var { multerSingle } = require("../middlewares/multer");
@@ -34,7 +33,7 @@ router.get('/details', authenticateFirebaseUser, async (req: Request, res: Respo
 
     const roleIndex: number = await RoleService.getUserRoleIndex(user.role.toString());
 
-    const { firstName, lastName, charityName, defaultAssociation } = user;
+    const { firstName, lastName, charityName, photo, defaultAssociation } = user;
 
     const responseBodyInit: Object = roleIndex !== 1 ? { firstName, lastName } : { charityName };
 
@@ -45,7 +44,8 @@ router.get('/details', authenticateFirebaseUser, async (req: Request, res: Respo
         ...responseBodyInit,
         id: userId,
         role: roleIndex,
-        defaultAssociation: defaultAssociation ? defaultAssociation.toString() : undefined
+        photo,
+        defaultAssociation
       }
     }
 
@@ -64,7 +64,7 @@ router.get('/associations', authenticateFirebaseUser, async (req: Request, res: 
       body: users.map((user: IUsersByTypeServiceResponse) => ({
         _id: user.id,
         label: user.charityName,
-        photoUrl: "https://img.freepik.com/vecteurs-libre/vecteur-degrade-logo-colore-oiseau_343694-1365.jpg"
+        photo: user.photo
       }))
     }
 

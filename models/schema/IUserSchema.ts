@@ -4,6 +4,7 @@ export interface IUserSchema extends Document {
     lastName?: string,
     firstName?: string,
     charityName?: string,
+    photo?: string,
     role: Types.ObjectId,
     defaultAssociation?: string
 }

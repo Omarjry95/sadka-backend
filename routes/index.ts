@@ -1,5 +1,6 @@
 var usersRouter = require('./users');
 var rolesRouter = require('./roles');
+var roundingsRouter = require('./roundings');
 
 module.exports = [
     {
@@ -9,5 +10,9 @@ module.exports = [
     {
         prefix: '/roles',
         router: rolesRouter
+    },
+    {
+        prefix: '/roundings',
+        router: roundingsRouter
     }
 ];

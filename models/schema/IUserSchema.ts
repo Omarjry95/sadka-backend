@@ -6,5 +6,6 @@ export interface IUserSchema extends Document {
     charityName?: string,
     photo?: string,
     role: Types.ObjectId,
+    rounding?: Types.ObjectId,
     defaultAssociation?: string
 }

@@ -4,6 +4,7 @@ const AppLogger = require("../logger");
 
 // const defaultRolesSeeder = require('./seeders/default-roles');
 // const firstUserSeeder = require('./seeders/1st-firebase-user');
+// const defaultRoundingsSeeder = require('./seeders/default-roundings');
 
 const { DATABASE_NAME, DATABASE_USERNAME, DATABASE_PASSWORD } = process.env;
 
@@ -35,4 +36,5 @@ module.exports = () => establishDatabaseConnection()
     /* Seeders: Please comment after completing seeding the database ! */
     // .then(defaultRolesSeeder)
     // .then(firstUserSeeder)
+  // .then(defaultRoundingsSeeder)
 ;

@@ -1,4 +1,4 @@
-import express, {Locals, Router} from "express";
+import express, {Locals, Router, Request, Response, NextFunction} from "express";
 import {IRoleSchema} from "../models/schema/IRoleSchema";
 
 var router: Router = express.Router();
@@ -9,7 +9,7 @@ var { verifyJwt, verifyRequiredScopes, scopes } = require("../middlewares/oauth2
 var Role = require("../schema/Role");
 var RoleService = require("../services/roleService");
 
-router.get('/', verifyJwt(), verifyRequiredScopes([scopes.unrestricted]), async (req, res, next) => {
+router.get('/', verifyJwt(), verifyRequiredScopes([scopes.unrestricted]), async (req: Request, res: Response, next: NextFunction) => {
     try {
         const roles: IRoleSchema[] = await RoleService.getAllRoles();
 

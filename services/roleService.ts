@@ -1,11 +1,11 @@
 import {IRoleSchema} from "../models/schema/IRoleSchema";
 import {IUserRoleServiceResponse} from "../models/routes/IUserRoleServiceResponse";
 
-const AppLogger = require("../logger");
 const Role = require("../schema/Role");
+const AppLogger = require("../logger");
 
 module.exports = {
-    getAllRoles: async (): Promise<IRoleSchema[]> => Role.find()
+    getAllRoles: (): Promise<IRoleSchema[]> => Role.find()
         .sort({ _id: 1 })
         .then((roles: IRoleSchema[]) => {
             if (roles.length === 0) { throw new Error(); }

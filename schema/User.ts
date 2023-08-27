@@ -15,6 +15,11 @@ module.exports = model('User', new Schema<IUserSchema>({
         ref: "Role",
         required: true
     },
+    rounding: {
+        type: Schema.Types.ObjectId,
+        ref: "Rounding",
+        required: false
+    },
     defaultAssociation: {
         type: String,
         ref: "User",

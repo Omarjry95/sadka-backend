@@ -13,7 +13,8 @@ module.exports = {
 
       return roundings.map((rounding: IRoundingSchema) => ({
         _id: rounding._id,
-        label: rounding.label
+        label: rounding.label,
+        power: rounding.power
       }))
     })
     .catch(() => {

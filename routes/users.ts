@@ -33,7 +33,8 @@ router.get('/details', authenticateFirebaseUser, async (req: Request, res: Respo
 
     const roleIndex: number = await RoleService.getUserRoleIndex(user.role.toString());
 
-    const { firstName, lastName, charityName, photo, defaultAssociation } = user;
+    const { firstName, lastName, charityName, photo, rounding,
+      defaultAssociation } = user;
 
     const responseBodyInit: Object = roleIndex !== 1 ? { firstName, lastName } : { charityName };
 
@@ -44,6 +45,7 @@ router.get('/details', authenticateFirebaseUser, async (req: Request, res: Respo
         ...responseBodyInit,
         id: userId,
         role: roleIndex,
+        defaultRounding: rounding,
         photo,
         defaultAssociation
       }
@@ -137,10 +139,11 @@ router.post('/', verifyJwt(), verifyRequiredScopes([scopes.unrestricted]), async
   catch (e: any) { next(e); }
 });
 
-router.put('/', multerSingle('photo'), authenticateFirebaseUser, async (req: Request<any, any, TypeOf<typeof IUpdateUserRequestBody>>, res: Response, next: NextFunction) => {
+router.put('/', multerSingle('photo'), authenticateFirebaseUser, async (req: Request<any, any, TypeOf<typeof IUpdateUserRequestBody>>, res: Response,
+                                                                        next: NextFunction) => {
 
   const { body, file, originalUrl, userId = '' } = req;
-  const { lastName, firstName, charityName, defaultAssociation,
+  const { lastName, firstName, charityName, defaultRounding, defaultAssociation,
     isPhotoChanged, role } = body;
 
   const isUserCitizen: boolean = role === "0";
@@ -156,7 +159,7 @@ router.put('/', multerSingle('photo'), authenticateFirebaseUser, async (req: Req
     performRequestBodyValidation(req, IUpdateUserRequestBody);
     performRequestBodyDataValidation(dataToValidate, originalUrl);
 
-    await UserService.updateUser(userId, lastName, firstName, charityName, defaultAssociation, file, isPhotoChanged);
+    await UserService.updateUser(userId, lastName, firstName, charityName, defaultRounding, defaultAssociation, file, isPhotoChanged);
 
     send({
       status: 200,

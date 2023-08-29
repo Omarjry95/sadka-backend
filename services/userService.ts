@@ -90,13 +90,14 @@ module.exports = {
 
         return userUID;
     },
-    updateUser: async (id: string, lastName?: string, firstName?: string, charityName?: string, defaultAssociation?: string, file?: Express.Multer.File,
-                       isPhotoChanged?: string) => {
+    updateUser: async (id: string, lastName?: string, firstName?: string, charityName?: string, defaultRounding?: string, defaultAssociation?: string,
+                       file?: Express.Multer.File, isPhotoChanged?: string) => {
 
         let propertiesToUpdate: Object = { lastName, firstName, charityName };
         let propertiesToUnset: Object = { };
 
         Object.assign(defaultAssociation ? propertiesToUpdate : propertiesToUnset, { defaultAssociation: defaultAssociation ?? '' });
+        Object.assign(defaultRounding ? propertiesToUpdate : propertiesToUnset, { rounding: defaultRounding ?? '' });
 
         const storageBucket = storage().bucket();
 

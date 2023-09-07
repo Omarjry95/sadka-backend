@@ -1,6 +1,6 @@
 const { createTransport } = require("nodemailer");
 const Email = require('email-templates');
-const AppLogger = require("../logger");
+var AppLogger = require("../logger");
 
 const { SMTP_HOST, SMTP_USERNAME, SMTP_PASSWORD } = process.env;
 

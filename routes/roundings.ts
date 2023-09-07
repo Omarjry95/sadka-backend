@@ -8,7 +8,7 @@ var send = require('../handlers/send-response');
 var AppLogger = require("../logger");
 var authenticateFirebaseUser = require("../middlewares/firebase-auth");
 
-router.get('/'/*, authenticateFirebaseUser*/, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/', authenticateFirebaseUser, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const roundings: IRoundingSchema[] = await RoundingService.getAllRoundings();
 

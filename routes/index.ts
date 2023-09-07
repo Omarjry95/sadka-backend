@@ -1,6 +1,7 @@
 var usersRouter = require('./users');
 var rolesRouter = require('./roles');
 var roundingsRouter = require('./roundings');
+var paymentsRouter = require('./payments');
 
 module.exports = [
     {
@@ -14,5 +15,9 @@ module.exports = [
     {
         prefix: '/roundings',
         router: roundingsRouter
+    },
+    {
+        prefix: '/payments',
+        router: paymentsRouter
     }
 ];

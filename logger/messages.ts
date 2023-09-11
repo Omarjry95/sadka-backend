@@ -48,6 +48,7 @@ module.exports = {
     userWithSameIdExists: (): string[] => ["A user with the same ID".red + " you provided ".white + "already exists".red + " in our database.".white],
     firebaseUserWithSameEmailExists: (): string[] => ["A user with the same email".red + " you provided ".white + "already exists".red +
         " in our ".white + "firebase".red + " database.".white],
+    stripePaymentNotForwarded: (): string[] => ["The ".white + "Stripe payment operation".red + " has returned ".white + "an error.".red],
     stripePublishableKeyDoesNotExist: (): string[] => ["The ".white + "Stripe publishable key".red + " is ".white + "not configured".red +
         " as an environment variable.".white],
     seedsInserted: (model: string): string[] => ["Seeds".green + " for ".white + model.green + " have been inserted seccessfully.".white]

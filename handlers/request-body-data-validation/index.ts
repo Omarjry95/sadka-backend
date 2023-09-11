@@ -25,6 +25,8 @@ module.exports = (dataToValidate: IDataValidationObject[], path: string): void =
                     return (typeof value === "string" && options?.regex instanceof RegExp && !options?.regex?.test(value)) ||
                         typeof value !== "string" ||
                         !(options?.regex instanceof RegExp);
+                case ValidationTypesEnum.GREATER_THAN_ZERO:
+                    return (typeof value === "number" && value <= 0) || typeof value !== "number";
                 default:
                     return false;
             }

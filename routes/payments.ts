@@ -1,66 +1,77 @@
 import express, {Locals, NextFunction, Request, Response, Router} from "express";
-import {TypeOf} from "io-ts";
 import {ICreatePaymentRequestBody} from "../models/routes/ICreatePaymentRequestBody";
-import {ICreatePaymentServiceResponse} from "../models/routes/ICreatePaymentServiceResponse";
-import {IDataValidationObject} from "../models/app/IDataValidationObject";
-import {ValidationTypesEnum} from "../models/app/ValidationTypesEnum";
+import {ICreatePaymentServiceResponse} from "../models/routes/ICreatePaymentServiceBasicResponse";
+import {IConfirmPaymentRequestBody} from "../models/routes/IConfirmPaymentRequestBody";
 
 var router: Router = express.Router();
 var AppLogger = require("../logger");
 var PaymentService = require('../services/paymentService');
 var authenticateFirebaseUser = require("../middlewares/firebase-auth");
-var performRequestBodyValidation = require("../handlers/request-body-validation");
-var performRequestBodyDataValidation = require("../handlers/request-body-data-validation");
 var send = require('../handlers/send-response');
 
-router.post('/', authenticateFirebaseUser, async (req: Request<any, any, TypeOf<typeof ICreatePaymentRequestBody>>, res: Response, next: NextFunction) => {
+router.post('/', authenticateFirebaseUser, (req: Request<any, any, ICreatePaymentRequestBody>, res: Response, next: NextFunction) => {
 
-  const { body, originalUrl } = req;
-  const { amount, paymentMethodId, paymentIntentId } = body;
+  const { originalAmount, association, paymentMethodId, note } = req.body;
 
-  try {
-    performRequestBodyValidation(req, ICreatePaymentRequestBody);
+  PaymentService.createPayment(originalAmount, paymentMethodId)
+    .then(async (stripePaymentResult: ICreatePaymentServiceResponse): Promise<ICreatePaymentServiceResponse> => {
+      await PaymentService.createDonation({
+        _id: stripePaymentResult.paymentIntent,
+        originalAmount,
+        association,
+        note,
+        success: stripePaymentResult.success
+      });
 
-    let stripePaymentResult: ICreatePaymentServiceResponse = {};
+      return stripePaymentResult;
+    })
+    .then((stripePaymentResult: ICreatePaymentServiceResponse) => {
+      const { success, requiresAction, clientSecret } = stripePaymentResult;
 
-    if (amount && paymentMethodId && !paymentIntentId) {
-      const dataToValidate: IDataValidationObject[] = [
-        { value: amount, validations: [ValidationTypesEnum.GREATER_THAN_ZERO] },
-        { value: paymentMethodId, validations: [ValidationTypesEnum.NOT_BLANK] }
-      ];
+      const response: Locals = {
+        status: 200,
+        message: AppLogger.messages.documentCreatedSuccess("Donation")[0],
+        body: {
+          success,
+          requiresAction,
+          clientSecret
+        }
+      }
 
-      performRequestBodyDataValidation(dataToValidate, originalUrl);
+      send(response, res, next);
+    })
+    .catch(next);
 
-      stripePaymentResult = await PaymentService.createPayment(amount, paymentMethodId);
-    }
-    else if (!amount && !paymentMethodId && paymentIntentId) {
-      const dataToValidate: IDataValidationObject[] = [
-        { value: paymentIntentId, validations: [ValidationTypesEnum.NOT_BLANK] }
-      ];
+  // else if (!originalAmount && !paymentMethodId && paymentIntentId) {
+  //   stripePaymentResult = await PaymentService.confirmPayment(paymentIntentId);
+  // }
+});
 
-      performRequestBodyDataValidation(dataToValidate, originalUrl);
+router.post('/confirm', authenticateFirebaseUser, (req: Request<any, any, IConfirmPaymentRequestBody>, res: Response, next: NextFunction) => {
 
-      stripePaymentResult = await PaymentService.confirmPayment(paymentIntentId);
-    }
-    else {
-      throw new Error(
-        AppLogger.stringifyToThrow(
-          AppLogger.messages.requestBodyDataValidationError(originalUrl)
-        ));
-    }
+  const { paymentIntentId } = req.body;
+
+  PaymentService.confirmPayment(paymentIntentId)
+    .then(async (stripePaymentResult: ICreatePaymentServiceResponse) => {
+      await PaymentService.confirmPayment(paymentIntentId)
+
+      return stripePaymentResult;
+    })
+    .then((stripePaymentResult: ICreatePaymentServiceResponse) => {
+    const { success, requiresAction, clientSecret } = stripePaymentResult;
 
     const response: Locals = {
       status: 200,
-      message: AppLogger.messages.documentCreatedSuccess("Donation")[0],
-      body: stripePaymentResult
+      message: AppLogger.messages.documentUpdatedSuccess("Donation")[0],
+      body: {
+        success,
+        requiresAction,
+        clientSecret
+      }
     }
 
     send(response, res, next);
-  }
-  catch (e: any) {
-    console.log(e);
-    next(e);
-  }
+  })
 });
 
 router.get('/publishable-key', authenticateFirebaseUser, (req: Request, res: Response, next: NextFunction) => {

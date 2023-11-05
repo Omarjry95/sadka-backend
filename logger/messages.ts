@@ -1,3 +1,30 @@
+import {app} from "../models";
+
+const SCHEMA_VALIDATION_ERROR = (model: string, logables: string[]) => new app.AppMessage(app.AppMessageStatus.ERROR, [[
+  "Schema validation for model".white,
+    model.red,
+    "has exited with these error messages:".white
+], ...logables.map((logable: string) => "\t" + logable.red)]);
+
+const DOCUMENT_NOT_FOUND = (model: string) => new app.AppMessage(app.AppMessageStatus.ERROR, [[
+    "No document".red,
+    "for the".white,
+    model.red,
+    "with the criteria you provided has been found.".white
+]]);
+
+const USER_WITH_SAME_ID_EXISTS = new app.AppMessage(app.AppMessageStatus.ERROR, [[
+  "A user with the same ID".red,
+    "you provided".white,
+    "already exists".red]]);
+
+const SEEDS_INSERTED = (model: string) => new app.AppMessage([[
+  "Seeds".green,
+    "for".white,
+    model.green,
+    "have been inserted successfully.".white
+]]);
+
 module.exports = {
     serverRunning: (): string[] => ["Sadka-backend is ".white + "running".green + " on port: ".white + "3000".green],
     databaseConnected: (): string[] => ["MongoDB Database".green + " is connected successfully.".white],
@@ -17,11 +44,7 @@ module.exports = {
     routeLostError: (path: string): string[] => [
         "Requesting route ".white + path.red + " is 404 ".white + "not found.".red
     ],
-    schemaValidationError: (model: string, messages: string[]): string[] => [
-        "Error: ".red + new Date(),
-        "Schema validation for model ".white + model.red + " has exited with these error messages:".white,
-        ...messages.map((message: string) => "\t" + message.red)
-    ],
+    SCHEMA_VALIDATION_ERROR,
     requestBodyValidationError: (path: string): string[] => ["Runtime type validation".red + " for body of request ".white + path.red + " has failed".red],
     requestBodyDataValidationError: (path: string): string[] => ["Data validation".red + " for body of request ".white + path.red + " has failed".red],
     userAuthSuccess: (path: string): string[] => ["User".green + " has been " + "authenticated successfully".green + " for usage of this endpoint: " + path.green],
@@ -32,24 +55,22 @@ module.exports = {
         " successfully".white],
     documentUpdatedSuccess: (model: string): string[] => ["Document of model ".white + model.green + " has been ".white + "updated".green +
     " successfully".white],
-    documentDoesNotExist: (model: string): string[] => ["No document".red + " for the ".white + model.red +
-    " with the criteria you provided has been found.".white
-    ],
+    DOCUMENT_NOT_FOUND,
     documentNotCreated: (model: string): string[] => ["Model ".white + model.red + " could not be created."],
     mailSendingSuccess: (emailAddresses: string[]): string[] => ["The ".white + "email".green + " has been ".white + "sent successfully".green +
         " to the following address: ".white + emailAddresses.join(", ").green],
     mailSendingError: (emailAddresses: string[]): string[] => ["An ".white + "error".red + " has occured while trying to ".white + "send an e-mail".red +
         " to the following address: ".white + emailAddresses.join(", ").red],
-    firebaseUserNotFound: (): string[] => ["Firebase ".white + "User".red + " was ".white + "not found".red],
+    // firebaseUserNotFound: (): string[] => ["Firebase ".white + "User".red + " was ".white + "not found".red],
     firebaseUserNotCreated: (): string[] => ["User has failed".red + " to add to ".white + "Firebase".red],
     firebaseEmailVerificationLinkGeneratedSuccess: (): string[] => ["The ".white + "Firebase email verification link".green + " has been generated ".white +
         "successfully".green],
     firebaseEmailVerificationLinkGeneratedError: (): string[] => ["The ".white + "firebase email verification link".red + " has ".white + "failed to generate".red],
-    userWithSameIdExists: (): string[] => ["A user with the same ID".red + " you provided ".white + "already exists".red + " in our database.".white],
-    firebaseUserWithSameEmailExists: (): string[] => ["A user with the same email".red + " you provided ".white + "already exists".red +
-        " in our ".white + "firebase".red + " database.".white],
+    USER_WITH_SAME_ID_EXISTS,
+    // firebaseUserWithSameEmailExists: (): string[] => ["A user with the same email".red + " you provided ".white + "already exists".red +
+    //     " in our ".white + "firebase".red + " database.".white],
     stripePaymentNotForwarded: (): string[] => ["The ".white + "Stripe payment operation".red + " has returned ".white + "an error.".red],
     stripePublishableKeyDoesNotExist: (): string[] => ["The ".white + "Stripe publishable key".red + " is ".white + "not configured".red +
         " as an environment variable.".white],
-    seedsInserted: (model: string): string[] => ["Seeds".green + " for ".white + model.green + " have been inserted seccessfully.".white]
+    SEEDS_INSERTED
 };

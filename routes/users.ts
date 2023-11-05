@@ -12,7 +12,7 @@ import {IUpdateUserRequestBody} from "../models/routes/IUpdateUserRequestBody";
 
 var router: Router = express.Router();
 var AppLogger = require("../logger");
-var Constants = require("../constants");
+var Constants = require("../constants/app");
 var send = require('../handlers/send-response');
 var { verifyJwt, verifyRequiredScopes, scopes } = require("../middlewares/oauth2");
 var authenticateFirebaseUser = require("../middlewares/firebase-auth");

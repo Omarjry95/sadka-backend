@@ -10,7 +10,7 @@ var { stripeDefaultParams, paymentIntentDefaultParams } = require("../constants/
 
 const { STRIPE_PUBLISHABLE_KEY, STRIPE_SECRET_KEY } = process.env;
 
-const stripe = new Stripe(STRIPE_SECRET_KEY as string, stripeDefaultParams);
+const stripe: Stripe = new Stripe(STRIPE_SECRET_KEY as string, stripeDefaultParams);
 
 module.exports = {
   createDonation: async (d: IDonationSchema) => {

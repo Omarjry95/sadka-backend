@@ -1,4 +1,4 @@
-const { fileExtensionsSeparator } = require("../constants")
+const { fileExtensionsSeparator } = require("../constants/app")
 
 module.exports = {
   getFileNameWithExtension: (file: Express.Multer.File, name: string): string => {

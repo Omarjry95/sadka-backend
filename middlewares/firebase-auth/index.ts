@@ -2,7 +2,7 @@ import {Request, Response, NextFunction} from "express";
 import {auth} from "firebase-admin";
 
 var AppLogger = require("../../logger");
-var { authTokenPrefix } = require("../../constants");
+var { authTokenPrefix } = require("../../constants/app");
 
 module.exports = async (req: Request, res: Response, next: NextFunction) => {
     try {

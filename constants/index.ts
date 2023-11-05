@@ -1,6 +1,9 @@
+const app = require("./app");
+const user = require("./user");
+const payment = require("./payment");
+
 module.exports = {
-    authTokenPrefix: "Bearer ",
-    emailRegex: /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
-    fileExtensionsSeparator: ".",
-    firebaseStoragePublicUrl: "https://storage.googleapis.com/sadka-31ab2.appspot.com/"
+  ...app,
+  ...user,
+  ...payment
 }

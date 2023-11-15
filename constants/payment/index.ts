@@ -1,10 +1,10 @@
-import {constants} from "../../models";
+import {IPaymentIntentDefaultParams, IStripeDefaultParams} from "../../models/constants";
 
-const STRIPE_DEFAULT_PARAMS: constants.IStripeDefaultParams = {
+const STRIPE_DEFAULT_PARAMS: IStripeDefaultParams = {
   typescript: true
 }
 
-const PAYMENT_INTENT_DEFAULT_PARAMS: constants.IPaymentIntentDefaultParams = {
+const PAYMENT_INTENT_DEFAULT_PARAMS: IPaymentIntentDefaultParams = {
   currency: "eur",
   confirm: true,
   // confirmation_method: "manual",
@@ -15,7 +15,7 @@ const PAYMENT_INTENT_DEFAULT_PARAMS: constants.IPaymentIntentDefaultParams = {
   }
 }
 
-module.exports = {
+export {
   STRIPE_DEFAULT_PARAMS,
   PAYMENT_INTENT_DEFAULT_PARAMS
 }

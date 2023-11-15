@@ -3,6 +3,7 @@ import express, { Express } from "express";
 import path from 'path';
 import cookieParser from 'cookie-parser';
 import logger from 'morgan';
+import BasicError from "./errors/BasicError";
 
 // var express = require('express');
 // var path = require('path');
@@ -46,4 +47,4 @@ app.use(ErrorHandler);
 databaseConnect()
     .then(firebaseInit)
     .then(() => app.listen(3000, () => AppLogger.log(AppLogger.messages.serverRunning())))
-    .catch((error: Error) => AppLogger.parseAndLog(error.message));
+    .catch((error: BasicError) => error.log());

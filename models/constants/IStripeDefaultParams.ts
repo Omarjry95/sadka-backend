@@ -1,3 +1,5 @@
-export interface IStripeDefaultParams {
+interface IStripeDefaultParams {
   typescript: boolean
 }
+
+export default IStripeDefaultParams;

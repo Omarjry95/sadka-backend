@@ -5,6 +5,6 @@ const DEFAULT_CREATE_USER_REQUEST_PROPS: auth.CreateRequest = {
     disabled: false
 }
 
-module.exports = {
+export {
     DEFAULT_CREATE_USER_REQUEST_PROPS
 }

@@ -1,6 +1,6 @@
 import {Types, Document} from "mongoose";
 
-export interface IUserSchema extends Document {
+interface IUserSchema extends Document {
     lastName?: string,
     firstName?: string,
     charityName?: string,
@@ -9,3 +9,5 @@ export interface IUserSchema extends Document {
     rounding?: Types.ObjectId,
     defaultAssociation?: string
 }
+
+export default IUserSchema;

@@ -1,8 +1,7 @@
-import {Error as MongooseError, HydratedDocument} from "mongoose";
-import {schema} from "../../models";
-
-const AppLogger = require('../../logger');
-const MongooseSchemaValidationMessagesExtractor = require("../../handlers/mongoose-schema-validation-messages");
+import {HydratedDocument} from "mongoose";
+import {IUserSchema, IRoleSchema} from "../../models/schema";
+import {UserWithSameIdExistsError, DocumentNotFoundError} from "../../errors/custom";
+import { seedsInserted } from '../../logger/messages';
 
 const { User, Role } = require("../../schema");
 
@@ -12,39 +11,25 @@ module.exports = async () => {
 
     await User.deleteOne({ _id: userId });
 
-    const userRole: schema.IRoleSchema | null = await Role.findOne().sort({ created_at: 1 });
+    const userRole: IRoleSchema | null = await Role.findOne()
+      .sort({ created_at: 1 });
 
     if (userRole) {
-        const existingUser: schema.IUserSchema | null = await User.findOne({ _id: userId });
+        const existingUser: IUserSchema | null = await User.findOne({ _id: userId });
 
-        if (existingUser) {
-            throw new Error(
-              AppLogger.messages
-                .USER_WITH_SAME_ID_EXISTS.stringify()
-            );
-        }
+        if (existingUser)
+            throw new UserWithSameIdExistsError();
 
-        const firstUser: HydratedDocument<schema.IUserSchema> = new User({
+        const firstUser: HydratedDocument<IUserSchema> = new User({
             _id: userId,
             firstName: 'Omar',
             lastName: 'Jarray',
             role: userRole._id
         });
 
-        const userModelValidation: MongooseError.ValidationError | null = firstUser.validateSync();
-
-        if (userModelValidation) {
-            throw new Error(
-              AppLogger.messages
-                .SCHEMA_VALIDATION_ERROR(User.modelName, MongooseSchemaValidationMessagesExtractor(userModelValidation))
-                .stringify()
-            );
-        }
-
         return firstUser.save()
-            .then(() => AppLogger.messages.SEEDS_INSERTED(User.modelName).log());
+            .then(() => seedsInserted(User.modelName).log());
     }
 
-    throw new Error(AppLogger.messages
-      .DOCUMENT_NOT_FOUND(Role.modelName).stringify());
+    throw new DocumentNotFoundError(Role.modelName);
 }

@@ -1,6 +1,6 @@
-import {AppMessageStatus} from "./AppMessageStatus";
+import AppMessageStatus from "./AppMessageStatus";
 
-module.exports = class AppMessage {
+class AppMessage {
 
   private _status: AppMessageStatus = AppMessageStatus.INFO;
 
@@ -8,16 +8,8 @@ module.exports = class AppMessage {
 
   private _logables: string[] = [];
 
-  constructor(status?: AppMessageStatus, observable?: string, logables?: string[] | string[][]) {
-    this._observable = observable;
+  constructor() {
 
-    if (status) {
-      this._status = status;
-    }
-
-    if (logables) {
-      this._logables = logables.map((logable: string | string[]) => Array.isArray(logable) ? logable.join(" ") : logable);
-    }
   }
 
   get observable(): string | undefined {
@@ -52,4 +44,6 @@ module.exports = class AppMessage {
       ...this._logables
     ]);
   }
-};
+}
+
+export default AppMessage;

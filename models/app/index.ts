@@ -1,6 +1,5 @@
-import {AppMessageStatus} from "./AppMessageStatus";
-
-var AppMessage = require("./AppMessage");
+import AppMessage from "./AppMessage";
+import AppMessageStatus from "./AppMessageStatus";
 
 export {
   AppMessage,

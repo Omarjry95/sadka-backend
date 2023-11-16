@@ -1,3 +1,5 @@
+const AUTHORIZATION_HEADER: string = "authorization";
+
 const AUTH_TOKEN_PREFIX: string = "Bearer ";
 
 const FILE_EXTENSIONS_SEPARATOR: string = ".";
@@ -24,6 +26,7 @@ const MONGODB_CONNECTION_OPTIONS = new Map([
 ]);
 
 export {
+    AUTHORIZATION_HEADER,
     AUTH_TOKEN_PREFIX,
     MONGODB_CONNECTION_URL_PREFIX,
     MONGODB_CONNECTION_OPTIONS,

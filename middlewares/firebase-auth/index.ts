@@ -1,32 +1,35 @@
 import {Request, Response, NextFunction} from "express";
 import {auth} from "firebase-admin";
+import {AUTHORIZATION_HEADER, AUTH_TOKEN_PREFIX} from "../../constants/app";
+import * as messages from "../../logger/messages";
+import { AuthError } from "../../errors/custom";
 
-var AppLogger = require("../../logger");
-var { authTokenPrefix } = require("../../constants/app");
+const authenticateFirebaseUser = async (req: Request, res: Response, next: NextFunction) => {
+    const { headers, originalUrl } = req;
 
-module.exports = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const { headers, originalUrl } = req;
+    const authHeader: string | string[] | undefined = headers[AUTHORIZATION_HEADER];
 
-        const authHeader: string | string[] | undefined = headers['authorization'];
+    if (typeof authHeader === "string" && authHeader.startsWith(AUTH_TOKEN_PREFIX)) {
 
-        if (typeof authHeader === "string" && authHeader.startsWith(authTokenPrefix)) {
-            const authToken: string = authHeader.split(authTokenPrefix)[1];
+        const authToken: string = authHeader.split(AUTH_TOKEN_PREFIX)[1];
 
+        try {
             const decodedAuthToken: auth.DecodedIdToken = await auth().verifyIdToken(authToken);
 
             req.userId = decodedAuthToken.uid;
             req.userEmail = decodedAuthToken.email;
 
-            AppLogger.log(AppLogger.messages.userAuthSuccess(originalUrl));
+            messages.authSuccess(originalUrl);
 
             next();
-        } else {
-            throw new Error(
-                AppLogger.stringifyToThrow(
-                    AppLogger.messages.userAuthError(originalUrl)
-                ));
+        }
+        catch (e: any) {
+            next(new AuthError(originalUrl));
         }
     }
-    catch (e: any) { next(e); }
+    else {
+        next(new AuthError(originalUrl));
+    }
 }
+
+export default authenticateFirebaseUser;

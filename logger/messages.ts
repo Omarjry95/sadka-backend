@@ -13,7 +13,53 @@ const databaseConnected = () => {
     ];
 
     return appMessage;
-}
+};
+
+const firebaseInitialized = () => {
+    const appMessage = new AppMessage();
+
+    appMessage.logables = [
+        [
+            "Firebase Service Account".green,
+            "has been initialized successfully."
+        ].join(" ")
+    ];
+
+    return appMessage;
+};
+
+const requestSuccess = (path: string) => {
+    const appMessage = new AppMessage();
+
+    appMessage.logables = [
+        [
+            "Success:".green,
+            new Date()
+        ],
+        [
+            "Request for",
+            path.green,
+            "has been done successfully."]
+    ].map(m => m.join(" "));
+
+    return appMessage;
+};
+
+const authSuccess = (path: string) => {
+    const appMessage = new AppMessage();
+
+    appMessage.logables = [
+        [
+            "User".green,
+            "has been",
+            "authenticated".green,
+            "successfully for usage of the endpoint:",
+            path.green
+        ].join(" ")
+    ];
+
+    return appMessage;
+};
 
 const seedsInserted = (model: string) => {
     const appMessage = new AppMessage();
@@ -31,19 +77,6 @@ const seedsInserted = (model: string) => {
 
     return appMessage;
 };
-
-const firebaseInitialized = () => {
-    const appMessage = new AppMessage();
-
-    appMessage.logables = [
-        [
-            "Firebase Service Account".green,
-            "has been initialized successfully."
-        ].join(" ")
-    ];
-
-    return appMessage;
-}
 
 export {
     // serverRunning: (): string[] => ["Sadka-backend is ".white + "running".green + " on port: ".white + "3000".green],
@@ -94,5 +127,7 @@ export {
     //     " as an environment variable.".white],
     databaseConnected,
     firebaseInitialized,
+    requestSuccess,
+    authSuccess,
     seedsInserted
 };

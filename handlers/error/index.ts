@@ -1,20 +1,15 @@
 import { NextFunction, Request, Response } from "express";
+import BasicError from "../../errors/BasicError";
+import ErrorBody from "../../models/app/ErrorBody";
 
-var AppLogger = require('../../logger');
-var ErrorBody = require('../../models/app/ErrorBody');
+const errorHandler = (error: Error, req: Request, res: Response, next: NextFunction) => {
 
-module.exports = (error: Error, req: Request, res: Response, next: NextFunction) => {
+    const basicError: BasicError = error as BasicError;
 
-    const message: string = (JSON.parse(error.message) as string[])[0];
+    basicError.log();
 
-    AppLogger.log(
-        AppLogger.messages.requestError(
-            message,
-            req.path
-        ));
-
-    const defaultErrorStatus: number = 500;
-
-    res.status(defaultErrorStatus)
-        .send(new ErrorBody(defaultErrorStatus, message));
+    res.status(500)
+      .send(new ErrorBody(basicError.observable, basicError.code));
 }
+
+export default errorHandler;

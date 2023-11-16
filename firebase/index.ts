@@ -1,23 +1,25 @@
 import { initializeApp, cert, AppOptions } from 'firebase-admin/app';
+import * as messages from "../logger/messages";
+import FirebaseInitFailed from "../errors/custom/FirebaseInitFailed";
 
-const { GOOGLE_APPLICATION_CREDENTIALS } = process.env;
+const { GOOGLE_APPLICATION_CREDENTIALS = '', FIREBASE_STORAGE_DEFAULT_BUCKET } = process.env;
 
-var AppLogger = require("../logger");
-
-module.exports = async () => {
+const firebaseInit = async () => {
     try {
         const firebaseAppOptions: AppOptions = {
             credential: cert(
-                require(GOOGLE_APPLICATION_CREDENTIALS as string)
+                require(GOOGLE_APPLICATION_CREDENTIALS)
             ),
-            storageBucket: 'sadka-31ab2.appspot.com'
+            storageBucket: FIREBASE_STORAGE_DEFAULT_BUCKET
         }
 
         initializeApp(firebaseAppOptions);
 
-        AppLogger.log(AppLogger.messages.firebaseInitialized());
+        messages.firebaseInitialized().log();
     }
     catch (e: any) {
-        throw new Error(AppLogger.stringifyToThrow(AppLogger.messages.firebaseInitializationFailed()));
+        throw new FirebaseInitFailed();
     }
 }
+
+export default firebaseInit;

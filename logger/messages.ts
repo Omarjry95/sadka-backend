@@ -1,23 +1,19 @@
-import 'colors';
 import {AppMessage} from "../models/app";
 
-// const SCHEMA_VALIDATION_ERROR = (model: string, logables: string[]) => new AppMessage(AppMessageStatus.ERROR, [[
-//   "Schema validation for model".white,
-//     model.red,
-//     "has exited with these error messages:".white
-// ], ...logables.map((logable: string) => "\t" + logable.red)]);
-//
-// const DOCUMENT_NOT_FOUND = (model: string) => new AppMessage(AppMessageStatus.ERROR, [[
-//     "No document".red,
-//     "for the".white,
-//     model.red,
-//     "with the criteria you provided has been found.".white
-// ]]);
-//
-// const USER_WITH_SAME_ID_EXISTS = new AppMessage(AppMessageStatus.ERROR, [[
-//   "A user with the same ID".red,
-//     "you provided".white,
-//     "already exists".red]]);
+const databaseConnected = () => {
+    const appMessage = new AppMessage();
+
+    appMessage.logables = [
+      [
+          "MongoDB Database".green,
+          "is",
+          "connected".green,
+          "successfully."
+      ].join(" ")
+    ];
+
+    return appMessage;
+}
 
 const seedsInserted = (model: string) => {
     const appMessage = new AppMessage();
@@ -25,14 +21,29 @@ const seedsInserted = (model: string) => {
     appMessage.logables = [
         [
             "Seeds".green,
-            "for".white,
+            "for",
             model.green,
-            "have been inserted successfully.".white
+            "model have been",
+            "inserted".green,
+            "successfully."
         ].join(" ")
     ];
 
     return appMessage;
 };
+
+const firebaseInitialized = () => {
+    const appMessage = new AppMessage();
+
+    appMessage.logables = [
+        [
+            "Firebase Service Account".green,
+            "has been initialized successfully."
+        ].join(" ")
+    ];
+
+    return appMessage;
+}
 
 export {
     // serverRunning: (): string[] => ["Sadka-backend is ".white + "running".green + " on port: ".white + "3000".green],
@@ -81,5 +92,7 @@ export {
     // stripePaymentNotForwarded: (): string[] => ["The ".white + "Stripe payment operation".red + " has returned ".white + "an error.".red],
     // stripePublishableKeyDoesNotExist: (): string[] => ["The ".white + "Stripe publishable key".red + " is ".white + "not configured".red +
     //     " as an environment variable.".white],
+    databaseConnected,
+    firebaseInitialized,
     seedsInserted
 };

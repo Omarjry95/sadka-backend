@@ -4,9 +4,9 @@ class DocumentNotFoundError extends BasicError {
   constructor(model: string) {
     const messages: string[][] = [[
       "No document".red,
-      "for the".white,
+      "for the",
       model.red,
-      "with the criteria you provided has been found.".white
+      "model with the criteria you provided has been found."
     ]];
 
     super(messages);

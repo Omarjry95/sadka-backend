@@ -1,4 +1,4 @@
-import AppMessage from "./AppMessage";
+import AppMessage from "../../logger/AppMessage";
 import AppMessageStatus from "./AppMessageStatus";
 
 export {

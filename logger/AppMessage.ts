@@ -1,8 +1,6 @@
-import AppMessageStatus from "./AppMessageStatus";
-
 class AppMessage {
 
-  private _status: AppMessageStatus = AppMessageStatus.INFO;
+  private _isSuccess: boolean = false;
 
   private _observable?: string;
 
@@ -28,21 +26,22 @@ class AppMessage {
     this._logables = value;
   }
 
+  get isSuccess(): boolean {
+    return this._isSuccess;
+  }
+
+  set isSuccess(value: boolean) {
+    this._isSuccess = value;
+  }
+
   public log(): void {
     const successLog: string[] = [];
 
-    if (this._status === AppMessageStatus.SUCCESS) {
+    if (this._isSuccess) {
       successLog.push("Success: ".green + new Date())
     }
 
     [...successLog, ...this._logables].forEach(console.log);
-  }
-
-  public stringify(): string {
-    return JSON.stringify([
-      "Error: ".red + new Date(),
-      ...this._logables
-    ]);
   }
 }
 

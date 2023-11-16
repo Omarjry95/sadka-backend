@@ -1,11 +1,11 @@
 import {HydratedDocument} from "mongoose";
 import {IUserSchema, IRoleSchema} from "../../models/schema";
 import {UserWithSameIdExistsError, DocumentNotFoundError} from "../../errors/custom";
-import { seedsInserted } from '../../logger/messages';
+import * as messages from '../../logger/messages';
 
 const { User, Role } = require("../../schema");
 
-module.exports = async () => {
+const firstFirebaseUserSeeder = async () => {
 
     const userId: string = 'RIsX5KouB3TnN69WRIHwIra5Qtt2';
 
@@ -28,8 +28,11 @@ module.exports = async () => {
         });
 
         return firstUser.save()
-            .then(() => seedsInserted(User.modelName).log());
+            .then(() => messages.seedsInserted(User.modelName)
+              .log());
     }
 
     throw new DocumentNotFoundError(Role.modelName);
 }
+
+export default firstFirebaseUserSeeder;

@@ -2,21 +2,16 @@
 import express, { Express } from "express";
 import path from 'path';
 import cookieParser from 'cookie-parser';
+import 'colors';
 import logger from 'morgan';
 import BasicError from "./errors/BasicError";
-
-// var express = require('express');
-// var path = require('path');
-// var cookieParser = require('cookie-parser');
-// var logger = require('morgan');
+import databaseConnect from "./database";
+import firebaseInit from "./firebase";
 
 /* Node requirements */
 require('dotenv').config();
-// var createError = require('http-errors');
 
 /* Custom utilities */
-const databaseConnect = require("./database");
-const firebaseInit = require("./firebase");
 const AppLogger = require("./logger");
 const SuccessHandler = require("./handlers/success");
 const ErrorHandler = require("./handlers/error");
@@ -38,7 +33,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 /* Routes */
 routes.map((route: any) => app.use(route.prefix, route.router));
 
-app.use(SuccessHandler);
+// app.use(SuccessHandler);
 
 /* Error handler */
 app.use(ErrorHandler);

@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose';
-import {IRoleSchema} from "../models/schema/IRoleSchema";
+import {IRoleSchema} from "../models/schema";
 
 module.exports = model('Role', new Schema<IRoleSchema>({
     label: {

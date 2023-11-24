@@ -1,3 +1,5 @@
-export interface ICreatePaymentServiceComplementaryResponse {
+interface ICreatePaymentServiceComplementaryResponse {
   paymentIntent: string
 }
+
+export default ICreatePaymentServiceComplementaryResponse;

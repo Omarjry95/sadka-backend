@@ -24,4 +24,4 @@ router.get('/', verifyJwt(), verifyRequiredScopes([scopes.unrestricted]), async 
     catch (e: any) { next(e); }
 });
 
-module.exports = router;
+export default router;

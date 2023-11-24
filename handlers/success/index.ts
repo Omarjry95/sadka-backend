@@ -1,6 +1,6 @@
 import { Response } from "express";
 import * as messages from "../../logger/messages";
-import SuccessResponse from "../../models/app/SuccessResponse";
+import { SuccessResponse } from "../../models/app";
 
 const successHandler = (res: Response, body: Object, path: string) => {
 

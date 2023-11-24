@@ -1,19 +1,11 @@
-import { intersection, partial, string, type, undefined as optional, union, keyof } from "io-ts";
+interface IUpdateUserRequestBody {
+    lastName?: string,
+    firstName?: string,
+    charityName?: string,
+    defaultRounding?: string,
+    defaultAssociation?: string,
+    isPhotoChanged?: "1",
+    role: "0" | "1" | "2"
+}
 
-export const IUpdateUserRequestBody = intersection([
-    type({
-        role: keyof({
-            "0": null,
-            "1": null,
-            "2": null
-        })
-    }),
-    partial({
-        lastName: union([string, optional]),
-        firstName: union([string, optional]),
-        charityName: union([string, optional]),
-        defaultRounding: union([string, optional]),
-        defaultAssociation: union([string, optional]),
-        isPhotoChanged: union([keyof({ "1": null }), optional])
-    })
-]);
+export default IUpdateUserRequestBody;

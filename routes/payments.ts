@@ -91,4 +91,4 @@ router.get('/publishable-key', authenticateFirebaseUser, (req: Request, res: Res
   }
 });
 
-module.exports = router;
+export default router;

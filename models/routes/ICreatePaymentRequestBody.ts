@@ -1,7 +1,8 @@
-export interface ICreatePaymentRequestBody {
+interface ICreatePaymentRequestBody {
   originalAmount: number,
   association: string,
   paymentMethodId: string,
-  // paymentIntentId: union([string, optional]),
   note?: string
 }
+
+export default ICreatePaymentRequestBody;

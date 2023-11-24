@@ -1,10 +1,12 @@
 import {IRoleSchema} from "../models/schema/IRoleSchema";
 import {IUserRoleServiceResponse} from "../models/routes/IUserRoleServiceResponse";
+import {DocumentNotFoundError} from "../errors/custom";
+import { UserRolesEnum } from "../models/app";
 
 const Role = require("../schema/Role");
 const AppLogger = require("../logger");
 
-module.exports = {
+const roleService = {
     getAllRoles: (): Promise<IRoleSchema[]> => Role.find()
         .sort({ _id: 1 })
         .then((roles: IRoleSchema[]) => {
@@ -38,19 +40,18 @@ module.exports = {
     //
     //     return role;
     // },
-    getUserRoleIndex: async (id: string): Promise<number> => Role.find()
+    getUserRoleIndex: async (id: string): Promise<UserRolesEnum> => Role.find()
         .sort({ _id: 1 })
         .then((roles: IRoleSchema[]) => {
-            const roleIndex: number = roles.findIndex((role: IRoleSchema) => role._id.toString() === id);
+            const roleIndex = roles.findIndex((role) => role._id.toString() === id);
 
-            if (roleIndex < 0) { throw new Error(); }
+            if (roleIndex < 0 || roleIndex >= Object.keys(UserRolesEnum).length / 2)
+                throw new Error();
 
             return roleIndex;
         })
         .catch(() => {
-            throw new Error(
-                AppLogger.stringifyToThrow(
-                    AppLogger.messages.documentDoesNotExist(Role.modelName)))
+            throw new DocumentNotFoundError(Role.modelName);
         }),
     isUserCitizen: async (roleId: string): Promise<IUserRoleServiceResponse> => {
         const roles: IRoleSchema[] = await Role.find()
@@ -71,4 +72,6 @@ module.exports = {
             isCitizen: userRoleIndex === 0
         }
     }
-}
+};
+
+export default roleService;

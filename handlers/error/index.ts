@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import BasicError from "../../errors/BasicError";
-import ErrorBody from "../../models/app/ErrorBody";
+import { ErrorBody } from "../../models/app";
 
 const errorHandler = (error: Error, req: Request, res: Response, next: NextFunction) => {
 

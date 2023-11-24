@@ -25,6 +25,10 @@ const MONGODB_CONNECTION_OPTIONS = new Map([
     ["w", "majority"]
 ]);
 
+const OAUTH2_SCOPES = {
+    unrestricted: 'unrestricted'
+};
+
 export {
     AUTHORIZATION_HEADER,
     AUTH_TOKEN_PREFIX,
@@ -36,5 +40,6 @@ export {
     SLASH_SEPARATOR,
     INTERROGATION_POINT_SEPARATOR,
     EQUAL_SEPARATOR,
-    AMPERSAND_SEPARATOR
+    AMPERSAND_SEPARATOR,
+    OAUTH2_SCOPES
 }

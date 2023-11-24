@@ -5,25 +5,31 @@ import * as messages from "../../logger/messages";
 import { AuthError } from "../../errors/custom";
 
 const authenticateFirebaseUser = async (req: Request, res: Response, next: NextFunction) => {
+
     const { headers, originalUrl } = req;
 
     const authHeader: string | string[] | undefined = headers[AUTHORIZATION_HEADER];
 
-    if (typeof authHeader === "string" && authHeader.startsWith(AUTH_TOKEN_PREFIX)) {
+    if (typeof authHeader === "string") {
 
-        const authToken: string = authHeader.split(AUTH_TOKEN_PREFIX)[1];
+        const authToken: string | undefined = authHeader.split(AUTH_TOKEN_PREFIX)[1];
 
-        try {
-            const decodedAuthToken: auth.DecodedIdToken = await auth().verifyIdToken(authToken);
+        if (authToken) {
+            try {
+                const decodedAuthToken: auth.DecodedIdToken = await auth().verifyIdToken(authToken);
 
-            req.userId = decodedAuthToken.uid;
-            req.userEmail = decodedAuthToken.email;
+                req.userId = decodedAuthToken.uid;
+                req.userEmail = decodedAuthToken.email;
 
-            messages.authSuccess(originalUrl);
+                messages.authSuccess(originalUrl).log();
 
-            next();
+                next();
+            }
+            catch (e: any) {
+                next(new AuthError(originalUrl));
+            }
         }
-        catch (e: any) {
+        else {
             next(new AuthError(originalUrl));
         }
     }

@@ -1,3 +1,5 @@
-export interface IConfirmPaymentRequestBody {
+interface IConfirmPaymentRequestBody {
   paymentIntentId: string
 }
+
+export default IConfirmPaymentRequestBody;

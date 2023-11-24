@@ -25,4 +25,4 @@ router.get('/', authenticateFirebaseUser, async (req: Request, res: Response, ne
   }
 });
 
-module.exports = router;
+export default router;

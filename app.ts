@@ -4,24 +4,20 @@ import path from 'path';
 import cookieParser from 'cookie-parser';
 import 'colors';
 import logger from 'morgan';
+import routes from "./routes";
 import BasicError from "./errors/BasicError";
 import databaseConnect from "./database";
 import firebaseInit from "./firebase";
+import IRoute from "./models/app/IRoute";
 
 /* Node requirements */
 require('dotenv').config();
 
 /* Custom utilities */
 const AppLogger = require("./logger");
-const SuccessHandler = require("./handlers/success");
 const ErrorHandler = require("./handlers/error");
 
 var app: Express = express();
-
-/* Routes requirements */
-// var usersRouter = require('./routes/users');
-// var rolesRouter = require('./routes/roles');
-var routes = require('./routes');
 
 /* Handlers */
 app.use(logger('dev'));
@@ -31,9 +27,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 /* Routes */
-routes.map((route: any) => app.use(route.prefix, route.router));
-
-// app.use(SuccessHandler);
+routes.map(({ prefix, router }: IRoute) => app.use(prefix, router));
 
 /* Error handler */
 app.use(ErrorHandler);

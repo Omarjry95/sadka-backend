@@ -1,9 +1,10 @@
-var usersRouter = require('./users');
-var rolesRouter = require('./roles');
-var roundingsRouter = require('./roundings');
-var paymentsRouter = require('./payments');
+import usersRouter from "./users";
+import rolesRouter from "./roles";
+import roundingsRouter from "./roundings";
+import paymentsRouter from "./payments";
+import {IRoute} from "../models/app";
 
-module.exports = [
+const routes: IRoute[] = [
     {
         prefix: '/users',
         router: usersRouter
@@ -21,3 +22,5 @@ module.exports = [
         router: paymentsRouter
     }
 ];
+
+export default routes;

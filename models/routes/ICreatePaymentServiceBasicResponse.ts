@@ -1,9 +1,7 @@
-import {ICreatePaymentServiceComplementaryResponse} from "./ICreatePaymentServiceComplementaryResponse";
-
-export interface ICreatePaymentServiceBasicResponse {
+interface ICreatePaymentServiceBasicResponse {
   success: boolean,
   requiresAction?: boolean
   clientSecret?: string
 }
 
-export type ICreatePaymentServiceResponse = ICreatePaymentServiceBasicResponse & ICreatePaymentServiceComplementaryResponse;
+export default ICreatePaymentServiceBasicResponse;

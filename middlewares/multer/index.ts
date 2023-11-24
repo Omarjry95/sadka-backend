@@ -1,5 +1,7 @@
 import multer, {memoryStorage} from "multer";
 
-module.exports = {
-  multerSingle: (fieldName: string) => multer({ storage: memoryStorage() }).single(fieldName)
+const multerManager = {
+  single: (fieldName: string) => multer({ storage: memoryStorage() }).single(fieldName)
 }
+
+export default multerManager;

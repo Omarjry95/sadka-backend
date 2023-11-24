@@ -4,6 +4,7 @@ import {IUserSchema} from "../models/schema/IUserSchema";
 import {Error as MongooseError, HydratedDocument} from "mongoose";
 import {IRoleSchema} from "../models/schema/IRoleSchema";
 import {IUsersByTypeServiceResponse} from "../models/routes/IUsersByTypeServiceResponse";
+import {DocumentNotFoundError} from "../errors/custom";
 
 var AppLogger = require("../logger");
 var Constants = require("../constants/user");
@@ -12,7 +13,7 @@ const Role = require("../schema/Role");
 var FileService = require("./fileService");
 const gatherValidationMessages = require("../handlers/mongoose-schema-validation-messages");
 
-module.exports = {
+const userService = {
     getUsersByRole: (roleIndex: 0 | 1 | 2): Promise<IUsersByTypeServiceResponse[]> => Role.find()
         .sort({ _id: 1 })
         .then((roles: IRoleSchema[]) => {
@@ -35,22 +36,29 @@ module.exports = {
                 AppLogger.stringifyToThrow(
                     AppLogger.messages.documentDoesNotExist(User.modelName)))
         }),
-    getUserById: async (id: string): Promise<IUserSchema> => {
-        let user: IUserSchema | null = null;
+    // getUserById: async (id: string): Promise<IUserSchema> => {
+    //     try {
+    //         const user: IUserSchema | null = await User.findById(id);
+    //
+    //         if (!user)
+    //             throw new DocumentNotFoundError(User.modelName);
+    //
+    //         return user;
+    //     }
+    //     catch (e: any) {
+    //         throw new DocumentNotFoundError(User.modelName);
+    //     }
+    // },
+    getUserById: async (id: string): Promise<IUserSchema> => User.findById(id)
+      .then((user: IUserSchema | null) => {
+          if (!user)
+              throw new Error();
 
-        try {
-            user = await User.findById(id);
-
-            if (!user) { throw new Error(); }
-        }
-        catch (e: any) {
-            throw new Error(
-                AppLogger.stringifyToThrow(
-                    AppLogger.messages.documentDoesNotExist(User.modelName)));
-        }
-
-        return user;
-    },
+          return user;
+      })
+      .catch(() => {
+          throw new DocumentNotFoundError(User.modelName);
+      }),
     createUser: async (user: HydratedDocument<IUserSchema>): Promise<void> => {
         const userModelValidation: MongooseError.ValidationError | null = user.validateSync();
 
@@ -160,3 +168,5 @@ module.exports = {
         }
     }
 };
+
+export default userService;

@@ -1,4 +1,4 @@
-import {AppMessage} from "../models/app";
+import AppMessage from "../logger/AppMessage";
 
 const databaseConnected = () => {
     const appMessage = new AppMessage();
@@ -57,6 +57,18 @@ const authSuccess = (path: string) => {
             path.green
         ].join(" ")
     ];
+
+    return appMessage;
+};
+
+const fetchSuccess = (model: string) => {
+    const appMessage = new AppMessage();
+
+    appMessage.observable = [
+        "Requested documents of model",
+        model,
+        "have been fetched successfully."
+    ].join(" ");
 
     return appMessage;
 };
@@ -129,5 +141,6 @@ export {
     firebaseInitialized,
     requestSuccess,
     authSuccess,
+    fetchSuccess,
     seedsInserted
 };

@@ -1,24 +1,19 @@
 import express, {Locals, NextFunction, Request, Response, Router} from "express";
-import {ICreateUserRequestBody} from "../models/routes/ICreateUserRequestBody";
 import {TypeOf} from "io-ts";
-import {IDataValidationObject} from "../models/app/IDataValidationObject";
-import {ValidationTypesEnum} from "../models/app/ValidationTypesEnum";
 import {auth} from "firebase-admin";
-import {IUserSchema} from "../models/schema/IUserSchema";
 import {HydratedDocument} from "mongoose";
-import {IUserRoleServiceResponse} from "../models/routes/IUserRoleServiceResponse";
-import {IUsersByTypeServiceResponse} from "../models/routes/IUsersByTypeServiceResponse";
-import {IUpdateUserRequestBody} from "../models/routes/IUpdateUserRequestBody";
+import authenticateFirebaseUser from "../middlewares/firebase-auth";
+import {IUserSchema} from "../models/schema";
+import {RoleService, UserService} from "../services";
+import send from "../handlers/success";
+import * as messages from "../logger/messages";
+import {UserRolesEnum} from "../models/app";
 
 var router: Router = express.Router();
 var AppLogger = require("../logger");
 var Constants = require("../constants/app");
-var send = require('../handlers/send-response');
 var { verifyJwt, verifyRequiredScopes, scopes } = require("../middlewares/oauth2");
-var authenticateFirebaseUser = require("../middlewares/firebase-auth");
 var User = require("../schema/User");
-var UserService = require("../services/userService");
-var RoleService = require("../services/roleService");
 var MailService = require("../services/mailService");
 var performRequestBodyValidation = require("../handlers/request-body-validation");
 var performRequestBodyDataValidation = require("../handlers/request-body-data-validation");
@@ -26,34 +21,35 @@ var { multerSingle } = require("../middlewares/multer");
 
 router.get('/details', authenticateFirebaseUser, async (req: Request, res: Response, next: NextFunction) => {
 
-  const { userId = '' } = req;
+  const { userId = '', originalUrl } = req;
 
   try {
     const user: IUserSchema = await UserService.getUserById(userId);
 
-    const roleIndex: number = await RoleService.getUserRoleIndex(user.role.toString());
+    const { firstName, lastName, charityName, photo, rounding: defaultRounding,
+      defaultAssociation, role } = user;
 
-    const { firstName, lastName, charityName, photo, rounding,
-      defaultAssociation } = user;
+    const roleIndex: UserRolesEnum = await RoleService.getUserRoleIndex(role.toString());
 
-    const responseBodyInit: Object = roleIndex !== 1 ? { firstName, lastName } : { charityName };
+    const payloadBodyInit = roleIndex !== UserRolesEnum.isAssociation ? { firstName, lastName } : { charityName };
 
-    const response: Locals = {
-      status: 200,
-      message: AppLogger.messages.dataFetchedSuccess(User.modelName)[0],
+    const payload = {
+      message: messages.fetchSuccess(User.modelName).observable,
       body: {
-        ...responseBodyInit,
+        ...payloadBodyInit,
         id: userId,
         role: roleIndex,
-        defaultRounding: rounding,
-        photo,
-        defaultAssociation
+        defaultAssociation,
+        defaultRounding,
+        photo
       }
     }
 
-    send(response, res, next);
+    send(res, payload, originalUrl);
   }
-  catch (e: any) { next(e); }
+  catch (e: any) {
+    next(e);
+  }
 });
 
 router.get('/associations', authenticateFirebaseUser, async (req: Request, res: Response, next: NextFunction) => {
@@ -188,4 +184,4 @@ router.get('/send-email-verification-link', authenticateFirebaseUser, async (req
   catch (e: any) { next(e); }
 });
 
-module.exports = router;
+export default router;

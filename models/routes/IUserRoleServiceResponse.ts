@@ -1,4 +1,6 @@
-export interface IUserRoleServiceResponse {
+interface IUserRoleServiceResponse {
     userRoleId: string,
     isCitizen: boolean
 }
+
+export default IUserRoleServiceResponse;

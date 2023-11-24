@@ -45,7 +45,7 @@ const roleService = {
         .then((roles: IRoleSchema[]) => {
             const roleIndex = roles.findIndex((role) => role._id.toString() === id);
 
-            if (roleIndex < 0 || roleIndex >= Object.keys(UserRolesEnum).length / 2)
+            if (roleIndex < 0)
                 throw new Error();
 
             return roleIndex;
@@ -53,24 +53,18 @@ const roleService = {
         .catch(() => {
             throw new DocumentNotFoundError(Role.modelName);
         }),
-    isUserCitizen: async (roleId: string): Promise<IUserRoleServiceResponse> => {
+    isUserCitizen: async (roleId: string): Promise<boolean> => {
         const roles: IRoleSchema[] = await Role.find()
             .sort({ _id: 1 });
 
         roles.pop();
 
-        const userRoleIndex: number = roles.findIndex((roleItem: IRoleSchema) => roleItem._id.toString() === roleId);
+        const userRoleIndex: number = roles.findIndex((role) => role._id.toString() === roleId);
 
-        if (userRoleIndex < 0) {
-            throw new Error(
-                AppLogger.stringifyToThrow(
-                    AppLogger.messages.documentDoesNotExist(Role.modelName)));
-        }
+        if (userRoleIndex < 0)
+            throw new DocumentNotFoundError(Role.modelName);
 
-        return {
-            userRoleId: roles[userRoleIndex]._id,
-            isCitizen: userRoleIndex === 0
-        }
+        return userRoleIndex === UserRolesEnum.isCitizen;
     }
 };
 

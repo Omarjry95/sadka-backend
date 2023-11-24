@@ -3,8 +3,10 @@ import {auth, storage} from "firebase-admin";
 import {IUserSchema} from "../models/schema/IUserSchema";
 import {Error as MongooseError, HydratedDocument} from "mongoose";
 import {IRoleSchema} from "../models/schema/IRoleSchema";
-import {IUsersByTypeServiceResponse} from "../models/routes/IUsersByTypeServiceResponse";
+import { IUsersByTypeServiceResponse } from "../models/routes";
 import {DocumentNotFoundError} from "../errors/custom";
+import { UserRolesEnum } from "../models/app";
+import FirebaseUserWithSameEmailExistsError from "../errors/custom/FirebaseUserWithSameEmailExistsError";
 
 var AppLogger = require("../logger");
 var Constants = require("../constants/user");
@@ -14,27 +16,26 @@ var FileService = require("./fileService");
 const gatherValidationMessages = require("../handlers/mongoose-schema-validation-messages");
 
 const userService = {
-    getUsersByRole: (roleIndex: 0 | 1 | 2): Promise<IUsersByTypeServiceResponse[]> => Role.find()
+    getUsersByRole: (roleIndex: UserRolesEnum): Promise<IUsersByTypeServiceResponse[]> => Role.find()
         .sort({ _id: 1 })
         .then((roles: IRoleSchema[]) => {
-            const role: IRoleSchema = roles[roleIndex];
+            const role: IRoleSchema | undefined = roles[roleIndex];
 
-            if (!role) { throw new Error(); }
+            if (!role)
+                throw new Error();
 
             return role._id;
         })
         .then((roleId: any) => User.find({ role: { _id: roleId } }))
-        .then((users: IUserSchema[]) => users.map((user: IUserSchema) => ({
-            id: user._id,
-            lastName: user.lastName,
-            firstName: user.firstName,
-            charityName: user.charityName,
-            photo: user.photo
+        .then((users: IUserSchema[]) => users.map(({ _id: id, lastName, firstName, charityName, photo }: IUserSchema) => ({
+            id,
+            lastName,
+            firstName,
+            charityName,
+            photo
         })))
         .catch(() => {
-            throw new Error(
-                AppLogger.stringifyToThrow(
-                    AppLogger.messages.documentDoesNotExist(User.modelName)))
+            throw new DocumentNotFoundError(User.modelName);
         }),
     // getUserById: async (id: string): Promise<IUserSchema> => {
     //     try {
@@ -138,12 +139,9 @@ const userService = {
         await User.findByIdAndUpdate(id, {...propertiesToUpdate, $unset: propertiesToUnset});
     },
     throwIfFirebaseUserExists: async (email: string, next: NextFunction) => {
-        await auth()
-            .getUserByEmail(email);
+        await auth().getUserByEmail(email);
 
-        next(
-            new Error(
-                AppLogger.stringifyToThrow(["UAE"])));
+        next(new FirebaseUserWithSameEmailExistsError());
     },
     getDisplayName: (isUserCitizen: boolean, firstName: string = "", lastName: string = "", charityName: string = ""): string => {
         if (isUserCitizen) {

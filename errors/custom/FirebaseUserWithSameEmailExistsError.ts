@@ -1,7 +1,6 @@
 import BasicError from "../BasicError";
 
 class FirebaseUserWithSameEmailExistsError extends BasicError {
-
     constructor() {
         const messages: string[][] = [[
             "A user with the same email".red,

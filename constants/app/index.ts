@@ -1,3 +1,6 @@
+import SMTPConnection from "nodemailer/lib/smtp-connection";
+import {EmailConfig} from "email-templates";
+
 const AUTHORIZATION_HEADER: string = "authorization";
 
 const AUTH_TOKEN_PREFIX: string = "Bearer ";
@@ -16,6 +19,10 @@ const EQUAL_SEPARATOR: string = "=";
 
 const AMPERSAND_SEPARATOR: string = "&";
 
+const COMMA_SEPARATOR: string = ",";
+
+const SPACE_SEPARATOR: string = " ";
+
 const MONGODB_CONNECTION_URL_PREFIX: string = "mongodb+srv"
   .concat(COLON_SEPARATOR)
   .concat(SLASH_SEPARATOR.repeat(2));
@@ -29,6 +36,16 @@ const OAUTH2_SCOPES = {
     unrestricted: 'unrestricted'
 };
 
+const MAIL_TRANSPORT_DEFAULT_PARAMS: SMTPConnection.Options = {
+    port: 587,
+    secure: false
+}
+
+const EMAIL_SENDING_DEFAULT_PARAMS: EmailConfig = {
+    message: { from: '"Sadka" <noreply@sadka.com>' },
+    send: true
+}
+
 export {
     AUTHORIZATION_HEADER,
     AUTH_TOKEN_PREFIX,
@@ -41,5 +58,9 @@ export {
     INTERROGATION_POINT_SEPARATOR,
     EQUAL_SEPARATOR,
     AMPERSAND_SEPARATOR,
-    OAUTH2_SCOPES
+    COMMA_SEPARATOR,
+    SPACE_SEPARATOR,
+    OAUTH2_SCOPES,
+    MAIL_TRANSPORT_DEFAULT_PARAMS,
+    EMAIL_SENDING_DEFAULT_PARAMS
 }

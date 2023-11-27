@@ -1,34 +1,40 @@
-const { createTransport } = require("nodemailer");
-const Email = require('email-templates');
-var AppLogger = require("../logger");
+import {createTransport} from "nodemailer";
+import Email from "email-templates";
+import {
+    COMMA_SEPARATOR,
+    EMAIL_SENDING_DEFAULT_PARAMS,
+    MAIL_TRANSPORT_DEFAULT_PARAMS,
+    SPACE_SEPARATOR
+} from "../constants/app";
+import * as messages from "../logger/messages";
 
-const { SMTP_HOST, SMTP_USERNAME, SMTP_PASSWORD } = process.env;
+const { SMTP_HOST: host, SMTP_USERNAME: user, SMTP_PASSWORD: pass } = process.env;
 
-module.exports = async (receivers: string[], template: string, locals: Object) => {
-    try {
-        const transport = createTransport({
-            host: SMTP_HOST,
-            port: 587,
-            secure: false,
-            auth: {
-                user: SMTP_USERNAME,
-                pass: SMTP_PASSWORD
-            }
-        });
+const mailService = {
+    send: async (receivers: string[], template: string, locals: Object) => {
+        try {
+            const email = new Email({
+                ...EMAIL_SENDING_DEFAULT_PARAMS,
+                transport: createTransport({
+                    host,
+                    auth: {
+                        user,
+                        pass
+                    },
+                    ...MAIL_TRANSPORT_DEFAULT_PARAMS
+                })
+            });
 
-        const email = new Email({
-            message: { from: '"Sadka" <noreply@sadka.com>' },
-            send: true,
-            transport
-        });
-
-        await email.send({
-            template,
-            message: { to: receivers.join(", ") },
-            locals
-        });
-    }
-    catch (e: any) {
-        AppLogger.log(AppLogger.messages.mailSendingError(receivers));
+            await email.send({
+                template,
+                message: { to: receivers.join(COMMA_SEPARATOR.concat(SPACE_SEPARATOR)) },
+                locals
+            });
+        }
+        catch (e: any) {
+            messages.mailSendingFailed(receivers).log();
+        }
     }
 }
+
+export default mailService;

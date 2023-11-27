@@ -1,19 +1,23 @@
 import {NextFunction} from "express";
 import {auth, storage} from "firebase-admin";
-import {IUserSchema} from "../models/schema/IUserSchema";
-import {Error as MongooseError, HydratedDocument} from "mongoose";
-import {IRoleSchema} from "../models/schema/IRoleSchema";
+import {HydratedDocument} from "mongoose";
 import { IUsersByTypeServiceResponse } from "../models/routes";
-import {DocumentNotFoundError} from "../errors/custom";
+import {
+    DocumentNotFoundError,
+    FirebaseUserNotCreated,
+    DocumentNotCreated,
+    FirebaseUserWithSameEmailExistsError,
+    FirebaseEmailVerificationLinkGenerationFailed
+} from "../errors/custom";
 import { UserRolesEnum } from "../models/app";
-import FirebaseUserWithSameEmailExistsError from "../errors/custom/FirebaseUserWithSameEmailExistsError";
+import {DEFAULT_CREATE_USER_REQUEST_PROPS} from "../constants/user";
+import {IRoleSchema, IUserSchema} from "../models/schema";
+import * as messages from "../logger/messages";
 
 var AppLogger = require("../logger");
-var Constants = require("../constants/user");
 const User = require("../schema/User");
 const Role = require("../schema/Role");
 var FileService = require("./fileService");
-const gatherValidationMessages = require("../handlers/mongoose-schema-validation-messages");
 
 const userService = {
     getUsersByRole: (roleIndex: UserRolesEnum): Promise<IUsersByTypeServiceResponse[]> => Role.find()
@@ -60,44 +64,23 @@ const userService = {
       .catch(() => {
           throw new DocumentNotFoundError(User.modelName);
       }),
-    createUser: async (user: HydratedDocument<IUserSchema>): Promise<void> => {
-        const userModelValidation: MongooseError.ValidationError | null = user.validateSync();
-
-        if (userModelValidation) {
-            throw new Error(
-                AppLogger.stringifyToThrow(
-                    AppLogger.messages.schemaValidationError(
-                        User.modelName,
-                        gatherValidationMessages(userModelValidation))));
-        }
-
-        try { await user.save(); }
-        catch (e: any) {
-            throw new Error(
-                AppLogger.stringifyToThrow(
-                    AppLogger.messages.documentNotCreated(User.modelName)))
-        }
-    },
+    createUser: async (user: HydratedDocument<IUserSchema>) => user.save()
+      .catch(() => {
+          throw new DocumentNotCreated(User.modelName)
+      }),
     createFirebaseUser: async (data: auth.CreateRequest): Promise<string> => {
-        let userUID: string = "";
-
         try {
             const userCreated: auth.UserRecord = await auth()
-                .createUser({
-                    ...Constants.defaultCreateUserRequestProps(),
-                    ...data
-                });
+              .createUser({
+                  ...DEFAULT_CREATE_USER_REQUEST_PROPS,
+                  ...data
+              });
 
-            userUID = userCreated.uid;
+            return userCreated.uid;
         }
         catch (e: any) {
-            throw new Error(
-                AppLogger.stringifyToThrow(
-                    AppLogger.messages.firebaseUserNotCreated()
-                ));
+            throw new FirebaseUserNotCreated();
         }
-
-        return userUID;
     },
     updateUser: async (id: string, lastName?: string, firstName?: string, charityName?: string, defaultRounding?: string, defaultAssociation?: string,
                        file?: Express.Multer.File, isPhotoChanged?: string) => {
@@ -143,26 +126,18 @@ const userService = {
 
         next(new FirebaseUserWithSameEmailExistsError());
     },
-    getDisplayName: (isUserCitizen: boolean, firstName: string = "", lastName: string = "", charityName: string = ""): string => {
-        if (isUserCitizen) {
-            return firstName.concat(' ').concat(lastName);
-        }
-
-        return charityName;
-    },
+    getDisplayName: (isUserCitizen: boolean, firstName: string = "", lastName: string = "", charityName: string = ""): string => isUserCitizen ?
+      firstName.concat(' ').concat(lastName) : charityName,
     generateEmailVerificationLink: async (email: string): Promise<string> => {
         try {
             const link: string = await auth().generateEmailVerificationLink(email);
 
-            AppLogger.log(AppLogger.messages.firebaseEmailVerificationLinkGeneratedSuccess());
+            messages.verificationLinkGenerated().log();
 
             return link;
         }
         catch (e: any) {
-            throw new Error(
-                AppLogger.stringifyToThrow(
-                    AppLogger.messages.firebaseEmailVerificationLinkGeneratedError()
-                ));
+            throw new FirebaseEmailVerificationLinkGenerationFailed();
         }
     }
 };

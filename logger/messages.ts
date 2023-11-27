@@ -1,4 +1,5 @@
 import AppMessage from "../logger/AppMessage";
+import {COMMA_SEPARATOR, SPACE_SEPARATOR} from "../constants/app";
 
 const databaseConnected = () => {
     const appMessage = new AppMessage();
@@ -73,6 +74,18 @@ const fetchSuccess = (model: string) => {
     return appMessage;
 };
 
+const documentCreated = (model: string) => {
+    const appMessage = new AppMessage();
+
+    appMessage.observable = [
+        "Document of model",
+        model,
+        "has been created successfully."
+    ].join(" ");
+
+    return appMessage;
+};
+
 const seedsInserted = (model: string) => {
     const appMessage = new AppMessage();
 
@@ -89,6 +102,38 @@ const seedsInserted = (model: string) => {
 
     return appMessage;
 };
+
+const verificationLinkGenerated = () => {
+    const appMessage = new AppMessage();
+
+    appMessage.logables = [
+        [
+            "The Firebase email",
+            "verification link".green,
+            "has been",
+            "generated successfully".green
+        ].join(" ")
+    ];
+
+    return appMessage;
+};
+
+const mailSendingFailed = (emailAddresses: string[]) => {
+    const appMessage = new AppMessage();
+
+    appMessage.logables = [
+        [
+            "An",
+            "error".red,
+            "has occured while trying to",
+            "send an e-mail".red,
+            "to the following address:",
+            emailAddresses.join(COMMA_SEPARATOR.concat(SPACE_SEPARATOR)).red
+        ].join(" ")
+    ];
+
+    return appMessage;
+}
 
 export {
     // serverRunning: (): string[] => ["Sadka-backend is ".white + "running".green + " on port: ".white + "3000".green],
@@ -142,5 +187,8 @@ export {
     requestSuccess,
     authSuccess,
     fetchSuccess,
-    seedsInserted
+    documentCreated,
+    seedsInserted,
+    verificationLinkGenerated,
+    mailSendingFailed
 };

@@ -4,22 +4,21 @@ import {auth} from "firebase-admin";
 import {HydratedDocument} from "mongoose";
 import authenticateFirebaseUser from "../middlewares/firebase-auth";
 import {IUserSchema} from "../models/schema";
-import {RoleService, UserService} from "../services";
+import {RoleService, UserService, MailService} from "../services";
 import send from "../handlers/success";
 import * as messages from "../logger/messages";
 import {UserRolesEnum} from "../models/app";
-import {ICreateUserRequestBody, IUserRoleServiceResponse, IUsersByTypeServiceResponse} from "../models/routes";
+import {ICreateUserRequestBody, IUsersByTypeServiceResponse} from "../models/routes";
 import oauth2Manager from "../middlewares/oauth2";
 import { OAUTH2_SCOPES } from "../constants/app";
+import templates from "../emails";
 
 var router: Router = express.Router();
 
 const { verifyJwt, verifyRequiredScopes } = oauth2Manager;
 
 var AppLogger = require("../logger");
-var Constants = require("../constants/app");
 var User = require("../schema/User");
-var MailService = require("../services/mailService");
 var performRequestBodyValidation = require("../handlers/request-body-validation");
 var performRequestBodyDataValidation = require("../handlers/request-body-data-validation");
 var { multerSingle } = require("../middlewares/multer");
@@ -95,7 +94,7 @@ router.post('/', verifyJwt(), verifyRequiredScopes([OAUTH2_SCOPES.unrestricted])
         const firebaseUserData: auth.CreateRequest = {
           email,
           password,
-          displayName: UserService.getDisplayName(isCitizen, firstName, lastName, charityName)
+          displayName: UserService.getDisplayName(isUserCitizen, firstName, lastName, charityName)
         }
 
         const userUID: string = await UserService.createFirebaseUser(firebaseUserData);
@@ -105,19 +104,16 @@ router.post('/', verifyJwt(), verifyRequiredScopes([OAUTH2_SCOPES.unrestricted])
           firstName,
           lastName,
           charityName,
-          role: userRoleId
+          role
         });
 
         await UserService.createUser(user);
 
         const link: string = await UserService.generateEmailVerificationLink(email);
 
-        await MailService([email], 'account-verification', { link });
+        await MailService.send([email], templates.ACCOUNT_VERIFICATION_TEMPLATE, { link });
 
-        send({
-          status: 200,
-          message: AppLogger.messages.documentCreatedSuccess(User.modelName)[0]
-        }, res, next);
+        send(res, { message: messages.documentCreated(User.modelName).observable }, originalUrl);
       }
     }
     catch (e: any) {

@@ -1,6 +1,6 @@
 import BasicError from "../BasicError";
 
-class DocumentNotFoundError extends BasicError {
+class DocumentNotFound extends BasicError {
   constructor(model: string) {
     const messages: string[][] = [[
       "No document".red,
@@ -13,4 +13,4 @@ class DocumentNotFoundError extends BasicError {
   }
 }
 
-export default DocumentNotFoundError;
+export default DocumentNotFound;

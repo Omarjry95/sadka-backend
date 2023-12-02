@@ -1,11 +1,11 @@
-const { fileExtensionsSeparator } = require("../constants/app")
+import {FILE_EXTENSIONS_SEPARATOR} from "../constants/app";
 
-module.exports = {
-  getFileNameWithExtension: (file: Express.Multer.File, name: string): string => {
-    let originalNameParts: string[] = file.originalname.split(fileExtensionsSeparator);
+const fileService = {
+  getFileNameWithExtension: (fileName: string, newName: string): string => {
+    let [_, ...extensions] = fileName.split(FILE_EXTENSIONS_SEPARATOR);
 
-    originalNameParts[0] = name;
-
-    return originalNameParts.join(fileExtensionsSeparator);
+    return [newName, ...extensions].join(FILE_EXTENSIONS_SEPARATOR);
   }
 }
+
+export default fileService;

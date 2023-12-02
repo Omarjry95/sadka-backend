@@ -1,5 +1,4 @@
 import express, {NextFunction, Request, Response, Router} from "express";
-import {TypeOf} from "io-ts";
 import {auth} from "firebase-admin";
 import {HydratedDocument} from "mongoose";
 import authenticateFirebaseUser from "../middlewares/firebase-auth";
@@ -8,20 +7,16 @@ import {RoleService, UserService, MailService} from "../services";
 import send from "../handlers/success";
 import * as messages from "../logger/messages";
 import {UserRolesEnum} from "../models/app";
-import {ICreateUserRequestBody, IUsersByTypeServiceResponse} from "../models/routes";
+import {ICreateUserRequestBody, IUsersByTypeServiceResponse, IUpdateUserRequestBody} from "../models/routes";
 import oauth2Manager from "../middlewares/oauth2";
 import { OAUTH2_SCOPES } from "../constants/app";
 import templates from "../emails";
-
-var router: Router = express.Router();
+import multerManager from "../middlewares/multer";
+import { User } from "../schema";
 
 const { verifyJwt, verifyRequiredScopes } = oauth2Manager;
 
-var AppLogger = require("../logger");
-var User = require("../schema/User");
-var performRequestBodyValidation = require("../handlers/request-body-validation");
-var performRequestBodyDataValidation = require("../handlers/request-body-data-validation");
-var { multerSingle } = require("../middlewares/multer");
+var router: Router = express.Router();
 
 router.get('/details', authenticateFirebaseUser, async (req: Request, res: Response, next: NextFunction) => {
 
@@ -121,53 +116,39 @@ router.post('/', verifyJwt(), verifyRequiredScopes([OAUTH2_SCOPES.unrestricted])
     }
 });
 
-router.put('/', multerSingle('photo'), authenticateFirebaseUser, async (req: Request<any, any, TypeOf<typeof IUpdateUserRequestBody>>, res: Response,
-                                                                        next: NextFunction) => {
+router.put('/', multerManager.single('photo'), authenticateFirebaseUser,
+  async (req: Request<any, any, IUpdateUserRequestBody>, res: Response, next: NextFunction) => {
 
   const { body, file, originalUrl, userId = '' } = req;
-  const { lastName, firstName, charityName, defaultRounding, defaultAssociation,
-    isPhotoChanged, role } = body;
-
-  const isUserCitizen: boolean = role === "0";
-
-  const dataToValidate: IDataValidationObject[] = isUserCitizen ? [
-    { value: lastName, validations: [ValidationTypesEnum.NOT_BLANK] },
-    { value: firstName, validations: [ValidationTypesEnum.NOT_BLANK] }
-  ] : [
-    { value: charityName, validations: [ValidationTypesEnum.NOT_BLANK] }
-  ];
 
   try {
-    performRequestBodyValidation(req, IUpdateUserRequestBody);
-    performRequestBodyDataValidation(dataToValidate, originalUrl);
+    await UserService.updateUser({
+      id: userId,
+      ...body,
+      file
+    });
 
-    await UserService.updateUser(userId, lastName, firstName, charityName, defaultRounding, defaultAssociation, file, isPhotoChanged);
-
-    send({
-      status: 200,
-      message: AppLogger.messages.documentUpdatedSuccess(User.modelName)[0]
-    }, res, next);
+    send(res, { message: messages.documentUpdated(User.modelName).observable }, originalUrl);
   }
-  catch (e: any) { next(e); }
+  catch (e: any) {
+    next(e);
+  }
 });
 
-router.get('/send-email-verification-link', authenticateFirebaseUser, async (req: Request, res: Response, next: NextFunction) => {
+router.post('/email-verification-link', authenticateFirebaseUser, async (req: Request, res: Response, next: NextFunction) => {
 
-  const { userEmail = '' } = req;
+  const { userEmail = '', originalUrl } = req;
 
   try {
-    const link: string = await UserService.generateEmailVerificationLink(userEmail);
+    const link = await UserService.generateEmailVerificationLink(userEmail);
 
-    const receivers: string[] = [userEmail];
+    await MailService.send([userEmail], templates.ACCOUNT_VERIFICATION_TEMPLATE, { link });
 
-    await MailService(receivers, 'account-verification', { link });
-
-    send({
-      status: 200,
-      message: AppLogger.messages.mailSendingSuccess(receivers)[0]
-    }, res, next);
+    send(res, { message: messages.mailSent().observable }, originalUrl);
   }
-  catch (e: any) { next(e); }
+  catch (e: any) {
+    next(e);
+  }
 });
 
 export default router;

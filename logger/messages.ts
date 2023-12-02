@@ -86,6 +86,18 @@ const documentCreated = (model: string) => {
     return appMessage;
 };
 
+const documentUpdated = (model: string) => {
+    const appMessage = new AppMessage();
+
+    appMessage.observable = [
+        "Document of model",
+        model,
+        "has been updated successfully."
+    ].join(" ");
+
+    return appMessage;
+};
+
 const seedsInserted = (model: string) => {
     const appMessage = new AppMessage();
 
@@ -114,6 +126,14 @@ const verificationLinkGenerated = () => {
             "generated successfully".green
         ].join(" ")
     ];
+
+    return appMessage;
+};
+
+const mailSent = () => {
+    const appMessage = new AppMessage();
+
+    appMessage.observable = "The email has been sent successfully.";
 
     return appMessage;
 };
@@ -188,7 +208,9 @@ export {
     authSuccess,
     fetchSuccess,
     documentCreated,
+    documentUpdated,
     seedsInserted,
-    verificationLinkGenerated,
-    mailSendingFailed
+    mailSent,
+    mailSendingFailed,
+    verificationLinkGenerated
 };

@@ -3,21 +3,19 @@ import {auth, storage} from "firebase-admin";
 import {HydratedDocument} from "mongoose";
 import { IUsersByTypeServiceResponse } from "../models/routes";
 import {
-    DocumentNotFoundError,
+    DocumentNotFound,
     FirebaseUserNotCreated,
     DocumentNotCreated,
     FirebaseUserWithSameEmailExistsError,
-    FirebaseEmailVerificationLinkGenerationFailed
+    FirebaseEmailVerificationLinkGenerationFailed, DocumentNotUpdated
 } from "../errors/custom";
 import { UserRolesEnum } from "../models/app";
 import {DEFAULT_CREATE_USER_REQUEST_PROPS} from "../constants/user";
 import {IRoleSchema, IUserSchema} from "../models/schema";
 import * as messages from "../logger/messages";
-
-var AppLogger = require("../logger");
-const User = require("../schema/User");
-const Role = require("../schema/Role");
-var FileService = require("./fileService");
+import IUpdateUserServiceRequestBody from "../models/routes/IUpdateUserServiceRequestBody";
+import { FileService } from "../services";
+import {User, Role} from "../schema";
 
 const userService = {
     getUsersByRole: (roleIndex: UserRolesEnum): Promise<IUsersByTypeServiceResponse[]> => Role.find()
@@ -39,19 +37,19 @@ const userService = {
             photo
         })))
         .catch(() => {
-            throw new DocumentNotFoundError(User.modelName);
+            throw new DocumentNotFound(User.modelName);
         }),
     // getUserById: async (id: string): Promise<IUserSchema> => {
     //     try {
     //         const user: IUserSchema | null = await User.findById(id);
     //
     //         if (!user)
-    //             throw new DocumentNotFoundError(User.modelName);
+    //             throw new DocumentNotFound(User.modelName);
     //
     //         return user;
     //     }
     //     catch (e: any) {
-    //         throw new DocumentNotFoundError(User.modelName);
+    //         throw new DocumentNotFound(User.modelName);
     //     }
     // },
     getUserById: async (id: string): Promise<IUserSchema> => User.findById(id)
@@ -62,7 +60,7 @@ const userService = {
           return user;
       })
       .catch(() => {
-          throw new DocumentNotFoundError(User.modelName);
+          throw new DocumentNotFound(User.modelName);
       }),
     createUser: async (user: HydratedDocument<IUserSchema>) => user.save()
       .catch(() => {
@@ -82,44 +80,59 @@ const userService = {
             throw new FirebaseUserNotCreated();
         }
     },
-    updateUser: async (id: string, lastName?: string, firstName?: string, charityName?: string, defaultRounding?: string, defaultAssociation?: string,
-                       file?: Express.Multer.File, isPhotoChanged?: string) => {
+    updateUser: async (data: IUpdateUserServiceRequestBody) => {
 
-        let propertiesToUpdate: Object = { lastName, firstName, charityName };
-        let propertiesToUnset: Object = { };
+        const { id, lastName, firstName, charityName, defaultRounding,
+            defaultAssociation, isPhotoChanged, file } = data;
 
-        Object.assign(defaultAssociation ? propertiesToUpdate : propertiesToUnset, { defaultAssociation: defaultAssociation ?? '' });
-        Object.assign(defaultRounding ? propertiesToUpdate : propertiesToUnset, { rounding: defaultRounding ?? '' });
+        let propertiesToUpdate: Record<string, string | undefined> = {
+            lastName,
+            firstName,
+            charityName,
+            ...(defaultAssociation ? { defaultAssociation } : {}),
+            ...(defaultRounding ? { rounding: defaultRounding } : {})
+        };
 
-        const storageBucket = storage().bucket();
+        let propertiesToUnset: Record<string, string | undefined> = {
+            ...(defaultAssociation ? { } : { defaultAssociation: '' }),
+            ...(defaultRounding ? { } : { rounding: '' })
+        };
 
-        if (file) {
-            const fileName: string = FileService.getFileNameWithExtension(file, id);
+        try {
+            const storageBucket = storage().bucket();
 
-            await storageBucket.file(fileName)
-              .save(file.buffer);
+            if (file) {
+                const { originalname: fileOriginalName, buffer: fileBuffer } = file;
 
-            propertiesToUpdate = {
-                ...propertiesToUpdate,
-                photo: fileName
-            }
-        } else if (isPhotoChanged) {
-            const [storageFiles] = await storageBucket.getFiles();
+                const fileName = FileService.getFileNameWithExtension(fileOriginalName, id);
 
-            const userSavedPhoto = storageFiles.find((storageFile) => storageFile.name.startsWith(id));
+                await storageBucket.file(fileName)
+                  .save(fileBuffer);
 
-            if (userSavedPhoto) {
-                await storageBucket.file(userSavedPhoto.name)
-                  .delete();
+                propertiesToUpdate = {
+                    ...propertiesToUpdate,
+                    photo: fileName
+                }
+            } else if (isPhotoChanged) {
+                const [storageFiles] = await storageBucket.getFiles();
 
-                propertiesToUnset = {
-                    ...propertiesToUnset,
-                    photo: ''
+                const userSavedPhoto = storageFiles.find(({ name: storageFileName }) => storageFileName.startsWith(id));
+
+                if (userSavedPhoto) {
+                    await storageBucket.file(userSavedPhoto.name)
+                      .delete();
+
+                    propertiesToUnset = {
+                        ...propertiesToUnset,
+                        photo: ''
+                    }
                 }
             }
-        }
 
-        await User.findByIdAndUpdate(id, {...propertiesToUpdate, $unset: propertiesToUnset});
+            User.findByIdAndUpdate(id, {...propertiesToUpdate, $unset: propertiesToUnset});
+        } catch (e: any) {
+            throw new DocumentNotUpdated(User.modelName);
+        }
     },
     throwIfFirebaseUserExists: async (email: string, next: NextFunction) => {
         await auth().getUserByEmail(email);
@@ -128,18 +141,15 @@ const userService = {
     },
     getDisplayName: (isUserCitizen: boolean, firstName: string = "", lastName: string = "", charityName: string = ""): string => isUserCitizen ?
       firstName.concat(' ').concat(lastName) : charityName,
-    generateEmailVerificationLink: async (email: string): Promise<string> => {
-        try {
-            const link: string = await auth().generateEmailVerificationLink(email);
+    generateEmailVerificationLink: async (email: string): Promise<string> => auth().generateEmailVerificationLink(email)
+      .then((link) => {
+          messages.verificationLinkGenerated().log();
 
-            messages.verificationLinkGenerated().log();
-
-            return link;
-        }
-        catch (e: any) {
-            throw new FirebaseEmailVerificationLinkGenerationFailed();
-        }
-    }
+          return link;
+      })
+      .catch(() => {
+          throw new FirebaseEmailVerificationLinkGenerationFailed();
+      })
 };
 
 export default userService;

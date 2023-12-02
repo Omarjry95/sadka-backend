@@ -1,25 +1,24 @@
-import {IRoundingSchema} from "../models/schema/IRoundingSchema";
+import {IRoundingSchema} from "../models/schema";
+import {IRoundingItem} from "../models/routes";
+import {DocumentNotFound} from "../errors/custom";
+import {Rounding} from "../schema";
 
-const Rounding = require("../schema/Rounding");
-const AppLogger = require("../logger");
-
-module.exports = {
-  getAllRoundings: (): Promise<IRoundingSchema> => Rounding.find()
+const roundingService = {
+  getAllRoundings: (): Promise<IRoundingItem[]> => Rounding.find()
     .sort({ _id: 1 })
     .then((roundings: IRoundingSchema[]) => {
-      if (roundings.length === 0) {
+      if (roundings.length === 0)
         throw new Error();
-      }
 
-      return roundings.map((rounding: IRoundingSchema) => ({
-        _id: rounding._id,
-        label: rounding.label,
-        power: rounding.power
+      return roundings.map(({ _id, label, power }: IRoundingSchema) => ({
+        _id,
+        label,
+        power
       }))
     })
     .catch(() => {
-      throw new Error(
-        AppLogger.stringifyToThrow(
-          AppLogger.messages.documentDoesNotExist(Rounding.modelName)))
+      throw new DocumentNotFound(Rounding.modelName);
     })
 }
+
+export default roundingService;

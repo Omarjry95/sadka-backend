@@ -1,7 +1,7 @@
 import {model, Schema} from "mongoose";
-import {IRoundingSchema} from "../models/schema/IRoundingSchema";
+import {IRoundingSchema} from "../models/schema";
 
-module.exports = model('Rounding', new Schema<IRoundingSchema>({
+const Rounding = model('Rounding', new Schema<IRoundingSchema>({
   label: {
     type: String,
     required: true
@@ -11,3 +11,5 @@ module.exports = model('Rounding', new Schema<IRoundingSchema>({
     required: true
   }
 }));
+
+export default Rounding;

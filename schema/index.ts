@@ -1,9 +1,9 @@
-const User = require("./User");
-const Role = require("./Role");
-const Rounding = require("./Rounding");
+import User from "./User";
+import Role from "./Role";
+import Rounding from "./Rounding";
 const Donation = require("./Donation");
 
-module.exports = {
+export {
   User,
   Role,
   Rounding,

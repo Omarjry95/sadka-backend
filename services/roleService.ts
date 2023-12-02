@@ -1,45 +1,26 @@
-import {IRoleSchema} from "../models/schema/IRoleSchema";
-import {IUserRoleServiceResponse} from "../models/routes/IUserRoleServiceResponse";
-import {DocumentNotFoundError} from "../errors/custom";
-import { UserRolesEnum } from "../models/app";
-
-const Role = require("../schema/Role");
-const AppLogger = require("../logger");
+import {UserRolesEnum} from "../models/app";
+import {IRoleSchema} from "../models/schema";
+import {DocumentNotFound} from "../errors/custom";
+import {Role} from "../schema";
+import {IRoleItem} from "../models/routes";
 
 const roleService = {
-    getAllRoles: (): Promise<IRoleSchema[]> => Role.find()
+    getAllRoles: (): Promise<IRoleItem[]> => Role.find()
         .sort({ _id: 1 })
         .then((roles: IRoleSchema[]) => {
-            if (roles.length === 0) { throw new Error(); }
+          if (roles.length === 0)
+            throw new Error();
 
-            roles.pop();
+          roles.pop();
 
-            return roles.map((role: IRoleSchema) => ({
-                _id: role._id,
-                label: role.label
-            }));
+          return roles.map(({ _id, label }: IRoleSchema) => ({
+            _id,
+            label
+          }));
         })
         .catch(() => {
-            throw new Error(
-                AppLogger.stringifyToThrow(
-                    AppLogger.messages.documentDoesNotExist(Role.modelName)))
+          throw new DocumentNotFound(Role.modelName);
         }),
-    // getRoleById: async (id: string): Promise<IRoleSchema> => {
-    //     let role: IRoleSchema | null = null;
-    //
-    //     try {
-    //         role = await Role.findById(id);
-    //
-    //         if (!role) { throw new Error(); }
-    //     }
-    //     catch (e: any) {
-    //         throw new Error(
-    //             AppLogger.stringifyToThrow(
-    //                 AppLogger.messages.documentDoesNotExist(Role.modelName)));
-    //     }
-    //
-    //     return role;
-    // },
     getUserRoleIndex: async (id: string): Promise<UserRolesEnum> => Role.find()
         .sort({ _id: 1 })
         .then((roles: IRoleSchema[]) => {
@@ -51,7 +32,7 @@ const roleService = {
             return roleIndex;
         })
         .catch(() => {
-            throw new DocumentNotFoundError(Role.modelName);
+            throw new DocumentNotFound(Role.modelName);
         }),
     isUserCitizen: async (roleId: string): Promise<boolean> => {
         const roles: IRoleSchema[] = await Role.find()
@@ -62,7 +43,7 @@ const roleService = {
         const userRoleIndex: number = roles.findIndex((role) => role._id.toString() === roleId);
 
         if (userRoleIndex < 0)
-            throw new DocumentNotFoundError(Role.modelName);
+            throw new DocumentNotFound(Role.modelName);
 
         return userRoleIndex === UserRolesEnum.isCitizen;
     }

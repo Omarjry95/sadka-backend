@@ -4,8 +4,7 @@ interface IUpdateUserRequestBody {
     charityName?: string,
     defaultRounding?: string,
     defaultAssociation?: string,
-    isPhotoChanged?: "1",
-    role: "0" | "1" | "2"
+    isPhotoChanged?: boolean
 }
 
 export default IUpdateUserRequestBody;

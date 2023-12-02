@@ -1,24 +1,23 @@
-import express, {Locals, NextFunction, Request, Response, Router} from "express";
-import {IRoundingSchema} from "../models/schema/IRoundingSchema";
+import express, {NextFunction, Request, Response, Router} from "express";
+import authenticateFirebaseUser from "../middlewares/firebase-auth";
+import {RoundingService} from "../services";
+import {IRoundingItem} from "../models/routes";
+import * as messages from "../logger/messages";
+import {Rounding} from "../schema";
+import send from "../handlers/success";
 
 var router: Router = express.Router();
-var Rounding = require("../schema/Rounding");
-var RoundingService = require('../services/roundingService');
-var send = require('../handlers/send-response');
-var AppLogger = require("../logger");
-var authenticateFirebaseUser = require("../middlewares/firebase-auth");
 
 router.get('/', authenticateFirebaseUser, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const roundings: IRoundingSchema[] = await RoundingService.getAllRoundings();
+    const roundings: IRoundingItem[] = await RoundingService.getAllRoundings();
 
-    const response: Locals = {
-      status: 200,
-      message: AppLogger.messages.dataFetchedSuccess(Rounding.modelName)[0],
+    const payload = {
+      message: messages.fetchSuccess(Rounding.modelName).observable,
       body: roundings
     }
 
-    send(response, res, next);
+    send(res, payload, req.originalUrl);
   }
   catch (e: any) {
     next(e);

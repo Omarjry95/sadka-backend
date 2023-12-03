@@ -1,7 +1,7 @@
 import {model, Schema} from "mongoose";
-import {IDonationSchema} from "../models/schema/IDonationSchema";
+import {IDonationSchema} from "../models/schema";
 
-module.exports = model('Donation', new Schema<IDonationSchema>({
+const Donation = model('Donation', new Schema<IDonationSchema>({
   _id: { type: String, required: true },
   originalAmount: { type: Number, required: false },
   association: {
@@ -12,3 +12,5 @@ module.exports = model('Donation', new Schema<IDonationSchema>({
   note: { type: String, required: false },
   success: { type: Boolean, required: true }
 }));
+
+export default Donation;

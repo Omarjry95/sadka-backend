@@ -1,50 +1,44 @@
 import express, {Locals, NextFunction, Request, Response, Router} from "express";
-import {ICreatePaymentRequestBody} from "../models/routes/ICreatePaymentRequestBody";
-import {ICreatePaymentServiceResponse} from "../models/routes/ICreatePaymentServiceBasicResponse";
-import {IConfirmPaymentRequestBody} from "../models/routes/IConfirmPaymentRequestBody";
+import authenticateFirebaseUser from "../middlewares/firebase-auth";
+import {IConfirmPaymentRequestBody, ICreatePaymentRequestBody, IManagePaymentServiceResponse} from "../models/routes";
+import {PaymentService} from "../services";
+import * as messages from "../logger/messages";
+import send from "../handlers/success";
+import {Donation} from "../schema";
 
 var router: Router = express.Router();
-var AppLogger = require("../logger");
-var PaymentService = require('../services/paymentService');
-var authenticateFirebaseUser = require("../middlewares/firebase-auth");
-var send = require('../handlers/send-response');
 
 router.post('/', authenticateFirebaseUser, (req: Request<any, any, ICreatePaymentRequestBody>, res: Response, next: NextFunction) => {
 
   const { originalAmount, association, paymentMethodId, note } = req.body;
 
-  PaymentService.createPayment(originalAmount, paymentMethodId)
-    .then(async (stripePaymentResult: ICreatePaymentServiceResponse): Promise<ICreatePaymentServiceResponse> => {
+  PaymentService.createPayment({
+    amount: originalAmount,
+    paymentMethodId
+  })
+    .then(async (result: IManagePaymentServiceResponse): Promise<IManagePaymentServiceResponse> => {
       await PaymentService.createDonation({
-        _id: stripePaymentResult.paymentIntent,
+        _id: result.paymentIntent,
         originalAmount,
         association,
         note,
-        success: stripePaymentResult.success
+        success: result.success
       });
 
-      return stripePaymentResult;
+      return result;
     })
-    .then((stripePaymentResult: ICreatePaymentServiceResponse) => {
-      const { success, requiresAction, clientSecret } = stripePaymentResult;
+    .then((result: IManagePaymentServiceResponse) => {
 
-      const response: Locals = {
-        status: 200,
-        message: AppLogger.messages.documentCreatedSuccess("Donation")[0],
-        body: {
-          success,
-          requiresAction,
-          clientSecret
-        }
+      const { paymentIntent, ...body } = result;
+
+      const payload = {
+        message: messages.documentCreated(Donation.modelName).observable,
+        body
       }
 
-      send(response, res, next);
+      send(res, payload, req.originalUrl);
     })
     .catch(next);
-
-  // else if (!originalAmount && !paymentMethodId && paymentIntentId) {
-  //   stripePaymentResult = await PaymentService.confirmPayment(paymentIntentId);
-  // }
 });
 
 router.post('/confirm', authenticateFirebaseUser, (req: Request<any, any, IConfirmPaymentRequestBody>, res: Response, next: NextFunction) => {
@@ -52,25 +46,20 @@ router.post('/confirm', authenticateFirebaseUser, (req: Request<any, any, IConfi
   const { paymentIntentId } = req.body;
 
   PaymentService.confirmPayment(paymentIntentId)
-    .then(async (stripePaymentResult: ICreatePaymentServiceResponse) => {
-      await PaymentService.confirmPayment(paymentIntentId)
+    .then(async (result: IManagePaymentServiceResponse) => {
+      await PaymentService.confirmDonation(paymentIntentId)
 
-      return stripePaymentResult;
+      return result;
     })
-    .then((stripePaymentResult: ICreatePaymentServiceResponse) => {
-    const { success, requiresAction, clientSecret } = stripePaymentResult;
+    .then((result: IManagePaymentServiceResponse) => {
+    const { paymentIntent, ...body } = result;
 
-    const response: Locals = {
-      status: 200,
-      message: AppLogger.messages.documentUpdatedSuccess("Donation")[0],
-      body: {
-        success,
-        requiresAction,
-        clientSecret
-      }
+    const payload = {
+      message: messages.documentUpdated(Donation.modelName).observable,
+      body
     }
 
-    send(response, res, next);
+    send(res, payload, req.originalUrl);
   })
 });
 

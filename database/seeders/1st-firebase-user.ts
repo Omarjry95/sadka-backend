@@ -1,6 +1,6 @@
 import {HydratedDocument} from "mongoose";
 import {IUserSchema, IRoleSchema} from "../../models/schema";
-import {UserWithSameIdExistsError, DocumentNotFoundError} from "../../errors/custom";
+import {UserWithSameIdExistsError, DocumentNotFound} from "../../errors/custom";
 import * as messages from '../../logger/messages';
 
 const { User, Role } = require("../../schema");
@@ -32,7 +32,7 @@ const firstFirebaseUserSeeder = async () => {
               .log());
     }
 
-    throw new DocumentNotFoundError(Role.modelName);
+    throw new DocumentNotFound(Role.modelName);
 }
 
 export default firstFirebaseUserSeeder;

@@ -39,19 +39,6 @@ const userService = {
         .catch(() => {
             throw new DocumentNotFound(User.modelName);
         }),
-    // getUserById: async (id: string): Promise<IUserSchema> => {
-    //     try {
-    //         const user: IUserSchema | null = await User.findById(id);
-    //
-    //         if (!user)
-    //             throw new DocumentNotFound(User.modelName);
-    //
-    //         return user;
-    //     }
-    //     catch (e: any) {
-    //         throw new DocumentNotFound(User.modelName);
-    //     }
-    // },
     getUserById: async (id: string): Promise<IUserSchema> => User.findById(id)
       .then((user: IUserSchema | null) => {
           if (!user)
@@ -64,7 +51,7 @@ const userService = {
       }),
     createUser: async (user: HydratedDocument<IUserSchema>) => user.save()
       .catch(() => {
-          throw new DocumentNotCreated(User.modelName)
+          throw new DocumentNotCreated(User.modelName);
       }),
     createFirebaseUser: async (data: auth.CreateRequest): Promise<string> => {
         try {

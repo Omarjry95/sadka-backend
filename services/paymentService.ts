@@ -1,62 +1,76 @@
-import {ICreatePaymentServiceResponse} from "../models/routes/ICreatePaymentServiceBasicResponse";
 import {HydratedDocument} from "mongoose";
-import {IDonationSchema} from "../models/schema/IDonationSchema";
-import {ICreatePaymentServiceComplementaryResponse} from "../models/routes/ICreatePaymentServiceComplementaryResponse";
 import Stripe from 'stripe';
-
-var AppLogger = require("../logger");
-const Donation = require("../schema/Donation");
-var { stripeDefaultParams, paymentIntentDefaultParams } = require("../constants/payment");
+import {PAYMENT_INTENT_DEFAULT_PARAMS, STRIPE_DEFAULT_PARAMS} from "../constants/payment";
+import {ICreatePaymentServiceRequestBody, IDonationItem, IManagePaymentServiceResponse} from "../models/routes";
+import {DocumentNotCreated, DocumentNotUpdated, StripePaymentFailed} from "../errors/custom";
+import {IDonationSchema} from "../models/schema";
+import {Donation} from "../schema";
 
 const { STRIPE_PUBLISHABLE_KEY, STRIPE_SECRET_KEY } = process.env;
 
-const stripe: Stripe = new Stripe(STRIPE_SECRET_KEY as string, stripeDefaultParams);
+const stripe = new Stripe(STRIPE_SECRET_KEY as string, STRIPE_DEFAULT_PARAMS);
 
-module.exports = {
-  createDonation: async (d: IDonationSchema) => {
+const getResponseByPaymentIntentStatus = (paymentIntent: Stripe.PaymentIntent, clientSecret?: string): IManagePaymentServiceResponse => {
+
+  const { id, status } = paymentIntent;
+
+  const data: IManagePaymentServiceResponse = {
+    success: true,
+    paymentIntent: id
+  };
+
+  switch (status) {
+    case 'requires_action':
+      return {
+        ...data,
+        success: false,
+        requiresAction: true,
+        clientSecret
+      }
+    case 'processing':
+    case 'succeeded':
+      return data;
+    default:
+      throw new StripePaymentFailed();
+  }
+};
+
+const paymentService = {
+  createDonation: async (d: IDonationItem) => {
     try {
       const donation: HydratedDocument<IDonationSchema> = new Donation(d);
 
       await donation.save();
     } catch (e) {
-      throw new Error(
-        AppLogger.stringifyToThrow(
-          AppLogger.messages.documentNotCreated("Donation")
-        ));
+      throw new DocumentNotCreated(Donation.modelName);
     }
   },
-  createPayment: async function (amount: number, payment_method: string): Promise<ICreatePaymentServiceResponse> {
-    const paymentIntent: Stripe.PaymentIntent = await stripe.paymentIntents.create({
-      ...paymentIntentDefaultParams,
-      amount: amount * 100,
-      payment_method
-    });
-
-    return this.getResponseByPaymentIntentStatus(paymentIntent);
-  },
-  confirmDonation: async (id: string) => {
-    try {
-      const donation: IDonationSchema | null = await Donation.findById(id);
-
-      if (donation) {
-        donation.success = true;
-
-        await donation.save();
-      } else {
+  createPayment: async (payment: ICreatePaymentServiceRequestBody): Promise<IManagePaymentServiceResponse> => stripe.paymentIntents.create({
+    ...PAYMENT_INTENT_DEFAULT_PARAMS,
+    amount: payment.amount * 100,
+    payment_method: payment.paymentMethodId
+  })
+    .then((paymentIntent) => getResponseByPaymentIntentStatus(paymentIntent))
+    .catch(() => {
+      throw new StripePaymentFailed();
+    }),
+  confirmDonation: async (id: string) => Donation.findById(id)
+    .then((donation) => {
+      if (!donation)
         throw new Error();
-      }
-    } catch (e) {
-      throw new Error(
-        AppLogger.stringifyToThrow(
-          AppLogger.messages.documentDoesNotExist("Donation")
-        ));
-    }
-  },
-  confirmPayment: async function (paymentIntentId: string): Promise<ICreatePaymentServiceResponse> {
-    const paymentIntent = await stripe.paymentIntents.confirm(paymentIntentId);
 
-    return this.getResponseByPaymentIntentStatus(paymentIntent);
-  },
+      donation.success = true;
+
+      return donation.save();
+    })
+    .catch(() => {
+      throw new DocumentNotUpdated(Donation.modelName);
+    }),
+  confirmPayment: (paymentIntentId: string): Promise<IManagePaymentServiceResponse> => stripe.paymentIntents.confirm(paymentIntentId)
+    .then((result) => getResponseByPaymentIntentStatus(result))
+    .catch(() => {
+      throw new StripePaymentFailed();
+    }),
   getStripePublishableKey: (): string => {
     if (STRIPE_PUBLISHABLE_KEY) {
       return STRIPE_PUBLISHABLE_KEY;
@@ -65,31 +79,7 @@ module.exports = {
     throw new Error(
       AppLogger.stringifyToThrow(
         AppLogger.messages.stripePublishableKeyDoesNotExist()))
-  },
-  getResponseByPaymentIntentStatus: (paymentIntent: Stripe.PaymentIntent, clientSecret?: string): ICreatePaymentServiceResponse => {
-
-    const complementaryData: ICreatePaymentServiceComplementaryResponse = {
-      paymentIntent: paymentIntent.id
-    };
-
-    switch (paymentIntent.status) {
-      case 'requires_action':
-        return {
-          success: false,
-          requiresAction: true,
-          clientSecret,
-          ...complementaryData
-        }
-      case 'processing':
-      case 'succeeded':
-        return {
-          success: true,
-          ...complementaryData
-        }
-      default:
-        throw new Error(
-          AppLogger.stringifyToThrow(
-            AppLogger.messages.stripePaymentNotForwarded()))
-    }
   }
 }
+
+export default paymentService;

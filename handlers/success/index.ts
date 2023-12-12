@@ -7,7 +7,7 @@ const successHandler = (res: Response, body: Object, path: string) => {
     messages.requestSuccess(path).log();
 
     res.status(200)
-        .send(body ?? new SuccessResponse());
+        .send(body);
 }
 
 export default successHandler;

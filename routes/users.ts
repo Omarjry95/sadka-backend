@@ -7,7 +7,7 @@ import {IUserSchema} from "../models/schema";
 import {RoleService, UserService, MailService} from "../services";
 import send from "../handlers/success";
 import * as messages from "../logger/messages";
-import {UserRolesEnum} from "../models/app";
+import {SuccessResponse, UserRolesEnum} from "../models/app";
 import {ICreateUserRequestBody, IUsersByTypeServiceResponse, IUpdateUserRequestBody} from "../models/routes";
 import { verifyJwt, verifyRequiredScopes } from "../middlewares/oauth2";
 import { OAUTH2_SCOPES } from "../constants/app";
@@ -24,8 +24,8 @@ router.get('/details', authenticateFirebaseUser, async (req: Request, res: Respo
   try {
     const user: IUserSchema = await UserService.getUserById(userId);
 
-    const { firstName, lastName, charityName, photo, rounding: defaultRounding,
-      defaultAssociation, role } = user;
+    const { firstName, lastName, charityName, photo,
+      rounding: defaultRounding, defaultAssociation, role } = user;
 
     const roleIndex: UserRolesEnum = await RoleService.getUserRoleIndex(role.toString());
 
@@ -107,7 +107,7 @@ router.post('/', verifyJwt(), verifyRequiredScopes([OAUTH2_SCOPES.unrestricted])
 
         await MailService.send([email], templates.ACCOUNT_VERIFICATION_TEMPLATE, { link });
 
-        send(res, { message: messages.documentCreated(User.modelName).observable }, originalUrl);
+        send(res, new SuccessResponse(), originalUrl);
       }
     }
     catch (e: any) {
@@ -127,7 +127,7 @@ router.put('/', multerManager.single('photo'), authenticateFirebaseUser,
       file
     });
 
-    send(res, { message: messages.documentUpdated(User.modelName).observable }, originalUrl);
+    send(res, new SuccessResponse(), originalUrl);
   }
   catch (e: any) {
     next(e);
@@ -143,7 +143,7 @@ router.post('/email-verification-link', authenticateFirebaseUser, async (req: Re
 
     await MailService.send([userEmail], templates.ACCOUNT_VERIFICATION_TEMPLATE, { link });
 
-    send(res, { message: messages.mailSent().observable }, originalUrl);
+    send(res, new SuccessResponse(), originalUrl);
   }
   catch (e: any) {
     next(e);

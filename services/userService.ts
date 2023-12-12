@@ -116,7 +116,7 @@ const userService = {
                 }
             }
 
-            User.findByIdAndUpdate(id, {...propertiesToUpdate, $unset: propertiesToUnset});
+            await User.findByIdAndUpdate(id, {...propertiesToUpdate, $unset: propertiesToUnset});
         } catch (e: any) {
             throw new DocumentNotUpdated(User.modelName);
         }

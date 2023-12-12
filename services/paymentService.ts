@@ -2,7 +2,12 @@ import {HydratedDocument} from "mongoose";
 import Stripe from 'stripe';
 import {PAYMENT_INTENT_DEFAULT_PARAMS, STRIPE_DEFAULT_PARAMS} from "../constants/payment";
 import {ICreatePaymentServiceRequestBody, IDonationItem, IManagePaymentServiceResponse} from "../models/routes";
-import {DocumentNotCreated, DocumentNotUpdated, StripePaymentFailed} from "../errors/custom";
+import {
+  DocumentNotCreated,
+  DocumentNotUpdated,
+  StripePaymentFailed,
+  StripePublishableKeyNotFound
+} from "../errors/custom";
 import {IDonationSchema} from "../models/schema";
 import {Donation} from "../schema";
 
@@ -72,13 +77,10 @@ const paymentService = {
       throw new StripePaymentFailed();
     }),
   getStripePublishableKey: (): string => {
-    if (STRIPE_PUBLISHABLE_KEY) {
-      return STRIPE_PUBLISHABLE_KEY;
-    }
+    if (!STRIPE_PUBLISHABLE_KEY)
+      throw new StripePublishableKeyNotFound();
 
-    throw new Error(
-      AppLogger.stringifyToThrow(
-        AppLogger.messages.stripePublishableKeyDoesNotExist()))
+    return STRIPE_PUBLISHABLE_KEY;
   }
 }
 

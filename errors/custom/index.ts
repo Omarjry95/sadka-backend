@@ -9,6 +9,7 @@ import DocumentNotCreated from "./DocumentNotCreated";
 import FirebaseEmailVerificationLinkGenerationFailed from "./FirebaseEmailVerificationLinkGenerationFailed";
 import DocumentNotUpdated from "./DocumentNotUpdated";
 import StripePaymentFailed from "./StripePaymentFailed";
+import StripePublishableKeyNotFound from "./StripePublishableKeyNotFound";
 
 export {
   DatabaseConnectionFailed,
@@ -21,5 +22,6 @@ export {
   UserWithSameIdExistsError,
   FirebaseUserWithSameEmailExistsError,
   FirebaseEmailVerificationLinkGenerationFailed,
-  StripePaymentFailed
+  StripePaymentFailed,
+  StripePublishableKeyNotFound
 }

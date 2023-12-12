@@ -1,15 +1,14 @@
-import express, {Router, Request, Response, NextFunction} from "express";
+import * as express from "express";
+import {NextFunction, Response, Request} from "express";
 import {RoleService} from "../services";
-import oauth2Manager from "../middlewares/oauth2";
+import { verifyJwt, verifyRequiredScopes } from "../middlewares/oauth2";
 import {OAUTH2_SCOPES} from "../constants/app";
 import {IRoleItem} from "../models/routes";
 import * as messages from "../logger/messages";
 import {Role} from "../schema";
 import send from "../handlers/success";
 
-const { verifyJwt, verifyRequiredScopes } = oauth2Manager;
-
-var router: Router = express.Router();
+var router = express.Router();
 
 router.get('/', verifyJwt(), verifyRequiredScopes([OAUTH2_SCOPES.unrestricted]), async (req: Request, res: Response, next: NextFunction) => {
   try {

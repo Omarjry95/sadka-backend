@@ -1,23 +1,20 @@
 /* Imports */
-import express, { Express } from "express";
-import path from 'path';
-import cookieParser from 'cookie-parser';
+import * as express from "express";
+import * as path from 'path';
+import * as cookieParser from 'cookie-parser';
 import 'colors';
-import logger from 'morgan';
-import routes from "./routes";
+import * as logger from 'morgan';
 import BasicError from "./errors/BasicError";
 import databaseConnect from "./database";
 import firebaseInit from "./firebase";
-import IRoute from "./models/app/IRoute";
+import { config as dotenvConfig } from 'dotenv';
+import errorHandler from './handlers/error';
+import * as messages from './logger/messages';
 
-/* Node requirements */
-require('dotenv').config();
+/* Env variables setup */
+dotenvConfig();
 
-/* Custom utilities */
-const AppLogger = require("./logger");
-const ErrorHandler = require("./handlers/error");
-
-var app: Express = express();
+var app = express();
 
 /* Handlers */
 app.use(logger('dev'));
@@ -27,13 +24,14 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 /* Routes */
-routes.map(({ prefix, router }: IRoute) => app.use(prefix, router));
+var routes = require('./routes');
+routes.map(({ prefix, router }: { prefix: string, router: any }) => app.use(prefix, router));
 
 /* Error handler */
-app.use(ErrorHandler);
+app.use(errorHandler);
 
 /* MongoDB database connection, which leads to the server launch if established */
 databaseConnect()
     .then(firebaseInit)
-    .then(() => app.listen(3000, () => AppLogger.log(AppLogger.messages.serverRunning())))
+    .then(() => app.listen(3000, () => messages.serverRunning().log()))
     .catch((error: BasicError) => error.log());

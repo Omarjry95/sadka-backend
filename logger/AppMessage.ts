@@ -41,7 +41,7 @@ class AppMessage {
       successLog.push("Success: ".green + new Date())
     }
 
-    [...successLog, ...this._logables].forEach(console.log);
+    [...successLog, ...this._logables].forEach((logable) => console.log(logable));
   }
 }
 

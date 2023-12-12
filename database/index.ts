@@ -11,8 +11,6 @@ import * as messages from "../logger/messages";
 import { DatabaseConnectionFailed } from "../errors/custom";
 // import { firstFirebaseUserSeeder, defaultRolesSeeder, defaultRoundingsSeeder } from './seeders';
 
-const { DATABASE_NAME, DATABASE_USERNAME, DATABASE_PASSWORD } = process.env;
-
 const establishDatabaseConnection = async (dbName: string = "", dbUsername: string = "", dbPwd: string = "") => {
 
     let connectionURL = MONGODB_CONNECTION_URL_PREFIX
@@ -40,7 +38,11 @@ const establishDatabaseConnection = async (dbName: string = "", dbUsername: stri
     }
 }
 
-const databaseProcess = () => establishDatabaseConnection(DATABASE_NAME, DATABASE_USERNAME, DATABASE_PASSWORD)
+const databaseProcess = () => {
+    const { DATABASE_NAME, DATABASE_USERNAME, DATABASE_PASSWORD } = process.env;
+
+    return establishDatabaseConnection(DATABASE_NAME, DATABASE_USERNAME, DATABASE_PASSWORD);
+}
   /* Seeders: Please comment after completing seeding the database ! */
   // .then(defaultRolesSeeder)
   // .then(firstUserSeeder)

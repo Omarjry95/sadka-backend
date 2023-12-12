@@ -1,4 +1,5 @@
-import express, {Locals, NextFunction, Request, Response, Router} from "express";
+import * as express from "express";
+import {NextFunction, Response, Request} from "express";
 import authenticateFirebaseUser from "../middlewares/firebase-auth";
 import {IConfirmPaymentRequestBody, ICreatePaymentRequestBody, IManagePaymentServiceResponse} from "../models/routes";
 import {PaymentService} from "../services";
@@ -6,7 +7,7 @@ import * as messages from "../logger/messages";
 import send from "../handlers/success";
 import {Donation} from "../schema";
 
-var router: Router = express.Router();
+var router = express.Router();
 
 router.post('/', authenticateFirebaseUser, (req: Request<any, any, ICreatePaymentRequestBody>, res: Response, next: NextFunction) => {
 
@@ -65,15 +66,14 @@ router.post('/confirm', authenticateFirebaseUser, (req: Request<any, any, IConfi
 
 router.get('/publishable-key', authenticateFirebaseUser, (req: Request, res: Response, next: NextFunction) => {
   try {
-    const response: Locals = {
-      status: 200,
-      message: AppLogger.messages.dataFetchedSuccess("Stripe Key")[0],
+    const payload = {
+      message: messages.fetchSuccess("Stripe Key").observable,
       body: {
         stripePublishableKey: PaymentService.getStripePublishableKey()
       }
     }
 
-    send(response, res, next);
+    send(res, payload, req.originalUrl);
   }
   catch (e: any) {
     next(e);

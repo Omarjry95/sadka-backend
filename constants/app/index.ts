@@ -1,4 +1,4 @@
-import SMTPConnection from "nodemailer/lib/smtp-connection";
+import * as SMTPConnection from "nodemailer/lib/smtp-connection";
 import {EmailConfig} from "email-templates";
 
 const AUTHORIZATION_HEADER: string = "authorization";

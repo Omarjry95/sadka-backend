@@ -2,24 +2,24 @@ import { initializeApp, cert, AppOptions } from 'firebase-admin/app';
 import * as messages from "../logger/messages";
 import FirebaseInitFailed from "../errors/custom/FirebaseInitFailed";
 
-const { GOOGLE_APPLICATION_CREDENTIALS = '', FIREBASE_STORAGE_DEFAULT_BUCKET } = process.env;
-
 const firebaseInit = async () => {
-    try {
-        const firebaseAppOptions: AppOptions = {
-            credential: cert(
-                require(GOOGLE_APPLICATION_CREDENTIALS)
-            ),
-            storageBucket: FIREBASE_STORAGE_DEFAULT_BUCKET
-        }
+  try {
+    const { GOOGLE_APPLICATION_CREDENTIALS = '', FIREBASE_STORAGE_DEFAULT_BUCKET } = process.env;
 
-        initializeApp(firebaseAppOptions);
+    const firebaseAppOptions: AppOptions = {
+      credential: cert(
+        require(GOOGLE_APPLICATION_CREDENTIALS)
+      ),
+      storageBucket: FIREBASE_STORAGE_DEFAULT_BUCKET
+    }
 
-        messages.firebaseInitialized().log();
-    }
-    catch (e: any) {
-        throw new FirebaseInitFailed();
-    }
+    initializeApp(firebaseAppOptions);
+
+    messages.firebaseInitialized().log();
+  }
+  catch (e: any) {
+    throw new FirebaseInitFailed();
+  }
 }
 
 export default firebaseInit;

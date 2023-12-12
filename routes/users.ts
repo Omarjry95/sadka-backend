@@ -1,4 +1,5 @@
-import express, {NextFunction, Request, Response, Router} from "express";
+import * as express from "express";
+import {NextFunction, Response, Request} from "express";
 import {auth} from "firebase-admin";
 import {HydratedDocument} from "mongoose";
 import authenticateFirebaseUser from "../middlewares/firebase-auth";
@@ -8,15 +9,13 @@ import send from "../handlers/success";
 import * as messages from "../logger/messages";
 import {UserRolesEnum} from "../models/app";
 import {ICreateUserRequestBody, IUsersByTypeServiceResponse, IUpdateUserRequestBody} from "../models/routes";
-import oauth2Manager from "../middlewares/oauth2";
+import { verifyJwt, verifyRequiredScopes } from "../middlewares/oauth2";
 import { OAUTH2_SCOPES } from "../constants/app";
 import templates from "../emails";
 import multerManager from "../middlewares/multer";
 import { User } from "../schema";
 
-const { verifyJwt, verifyRequiredScopes } = oauth2Manager;
-
-var router: Router = express.Router();
+var router = express.Router();
 
 router.get('/details', authenticateFirebaseUser, async (req: Request, res: Response, next: NextFunction) => {
 

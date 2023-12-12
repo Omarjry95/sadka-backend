@@ -2,9 +2,8 @@ import usersRouter from "./users";
 import rolesRouter from "./roles";
 import roundingsRouter from "./roundings";
 import paymentsRouter from "./payments";
-import {IRoute} from "../models/app";
 
-const routes: IRoute[] = [
+module.exports = [
     {
         prefix: '/users',
         router: usersRouter
@@ -22,5 +21,3 @@ const routes: IRoute[] = [
         router: paymentsRouter
     }
 ];
-
-export default routes;

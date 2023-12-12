@@ -1,4 +1,5 @@
-import express, {NextFunction, Request, Response, Router} from "express";
+import * as express from "express";
+import {NextFunction, Response, Request} from "express";
 import authenticateFirebaseUser from "../middlewares/firebase-auth";
 import {RoundingService} from "../services";
 import {IRoundingItem} from "../models/routes";
@@ -6,7 +7,7 @@ import * as messages from "../logger/messages";
 import {Rounding} from "../schema";
 import send from "../handlers/success";
 
-var router: Router = express.Router();
+var router = express.Router();
 
 router.get('/', authenticateFirebaseUser, async (req: Request, res: Response, next: NextFunction) => {
   try {

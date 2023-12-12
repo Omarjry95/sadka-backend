@@ -1,5 +1,5 @@
 import {createTransport} from "nodemailer";
-import Email from "email-templates";
+import * as Email from "email-templates";
 import {
     COMMA_SEPARATOR,
     EMAIL_SENDING_DEFAULT_PARAMS,

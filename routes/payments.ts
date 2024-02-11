@@ -53,11 +53,13 @@ router.post('/confirm', authenticateFirebaseUser, (req: Request<any, any, IConfi
       return result;
     })
     .then((result: IManagePaymentServiceResponse) => {
-    const { paymentIntent, ...body } = result;
+    const { success } = result;
 
     const payload = {
       message: messages.documentUpdated(Donation.modelName).observable,
-      body
+      body: {
+        success
+      }
     }
 
     send(res, payload, req.originalUrl);

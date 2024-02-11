@@ -47,6 +47,7 @@ const paymentService = {
 
       await donation.save();
     } catch (e) {
+      console.log(e);
       throw new DocumentNotCreated(Donation.modelName);
     }
   },
@@ -56,7 +57,8 @@ const paymentService = {
     payment_method: payment.paymentMethodId
   })
     .then((paymentIntent) => getResponseByPaymentIntentStatus(paymentIntent))
-    .catch(() => {
+    .catch((e) => {
+      console.log(e);
       throw new StripePaymentFailed();
     }),
   confirmDonation: async (id: string) => Donation.findById(id)

@@ -5,7 +5,7 @@ const Donation = model('Donation', new Schema<IDonationSchema>({
   _id: { type: String, required: true },
   originalAmount: { type: Number, required: false },
   association: {
-    type: Schema.Types.ObjectId,
+    type: String,
     ref: "User",
     required: true
   },

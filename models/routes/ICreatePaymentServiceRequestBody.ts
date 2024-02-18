@@ -1,6 +1,7 @@
 interface ICreatePaymentServiceRequestBody {
   amount: number,
-  paymentMethodId: string
+  paymentMethodId: string,
+  customerId?: string
 }
 
 export default ICreatePaymentServiceRequestBody;

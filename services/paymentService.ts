@@ -1,10 +1,10 @@
 import {HydratedDocument} from "mongoose";
 import Stripe from 'stripe';
-import {PAYMENT_INTENT_DEFAULT_PARAMS, STRIPE_DEFAULT_PARAMS} from "../constants/payment";
+import {PAYMENT_INTENT_DEFAULT_PARAMS, SETUP_INTENT_DEFAULT_PARAMS, STRIPE_DEFAULT_PARAMS} from "../constants/payment";
 import {ICreatePaymentServiceRequestBody, IDonationItem, IManagePaymentServiceResponse} from "../models/routes";
 import {
   DocumentNotCreated,
-  DocumentNotUpdated,
+  DocumentNotUpdated, StripeFetchFailed,
   StripePaymentFailed,
   StripePublishableKeyNotFound
 } from "../errors/custom";
@@ -40,21 +40,33 @@ const getResponseByPaymentIntentStatus = (paymentIntent: Stripe.PaymentIntent, c
   }
 };
 
+// const searchCustomers = (query: string, page?: string): Stripe.ApiSearchResultPromise<Stripe.Customer> => stripe.customers
+//   .search({
+//     query,
+//     limit: 100,
+//     page
+//   });
+
 const paymentService = {
+  getLastCard: async (): Promise<Stripe.ApiSearchResultPromise<Stripe.Customer>> => stripe.customers
+    .search({
+      query: 'email:\'omarjry9@gmail.com\'',
+      limit: 100
+    }),
   createDonation: async (d: IDonationItem) => {
     try {
       const donation: HydratedDocument<IDonationSchema> = new Donation(d);
 
       await donation.save();
     } catch (e) {
-      console.log(e);
       throw new DocumentNotCreated(Donation.modelName);
     }
   },
   createPayment: async (payment: ICreatePaymentServiceRequestBody): Promise<IManagePaymentServiceResponse> => stripe.paymentIntents.create({
     ...PAYMENT_INTENT_DEFAULT_PARAMS,
     amount: payment.amount * 100,
-    payment_method: payment.paymentMethodId
+    payment_method: payment.paymentMethodId,
+    customer: payment.customerId
   })
     .then((paymentIntent) => getResponseByPaymentIntentStatus(paymentIntent))
     .catch((e) => {
@@ -78,6 +90,36 @@ const paymentService = {
     .catch(() => {
       throw new StripePaymentFailed();
     }),
+  savePaymentMethod: async (paymentMethodId: string, email: string): Promise<string> => {
+    const customers: Stripe.Response<Stripe.ApiList<Stripe.Customer>> = await stripe.customers.list({
+      email,
+      limit: 1
+    }).catch(() => {
+      throw new StripeFetchFailed();
+    });
+
+    let customerId: string | undefined;
+
+    if (customers.data.length > 0)
+      customerId = customers.data[0].id;
+    else {
+      const customer: Stripe.Response<Stripe.Customer> = await stripe.customers.create({
+        email
+      });
+
+      customerId = customer.id;
+    }
+
+    await stripe.setupIntents.create({
+      ...SETUP_INTENT_DEFAULT_PARAMS,
+      payment_method: paymentMethodId,
+      customer: customerId
+    }).catch(() => {
+      throw new StripePaymentFailed();
+    });
+
+    return customerId;
+  },
   getStripePublishableKey: (): string => {
     if (!STRIPE_PUBLISHABLE_KEY)
       throw new StripePublishableKeyNotFound();

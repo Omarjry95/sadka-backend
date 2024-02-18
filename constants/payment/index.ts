@@ -18,7 +18,13 @@ const PAYMENT_INTENT_DEFAULT_PARAMS: IPaymentIntentDefaultParams = {
   }
 }
 
+const SETUP_INTENT_DEFAULT_PARAMS: Stripe.SetupIntentCreateParams = {
+  payment_method_types: ['card'],
+  confirm: true
+}
+
 export {
   STRIPE_DEFAULT_PARAMS,
-  PAYMENT_INTENT_DEFAULT_PARAMS
+  PAYMENT_INTENT_DEFAULT_PARAMS,
+  SETUP_INTENT_DEFAULT_PARAMS
 }

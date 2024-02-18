@@ -3,6 +3,11 @@ import {IDonationSchema} from "../models/schema";
 
 const Donation = model('Donation', new Schema<IDonationSchema>({
   _id: { type: String, required: true },
+  user: {
+    type: String,
+    ref: "User",
+    required: true
+  },
   originalAmount: { type: Number, required: false },
   association: {
     type: String,

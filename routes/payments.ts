@@ -2,24 +2,49 @@ import * as express from "express";
 import {NextFunction, Response, Request} from "express";
 import authenticateFirebaseUser from "../middlewares/firebase-auth";
 import {IConfirmPaymentRequestBody, ICreatePaymentRequestBody, IManagePaymentServiceResponse} from "../models/routes";
-import {PaymentService} from "../services";
+import {PaymentService, UserService} from "../services";
 import * as messages from "../logger/messages";
 import send from "../handlers/success";
 import {Donation} from "../schema";
+import {IUserSchema} from "../models/schema";
 
 var router = express.Router();
 
-router.post('/', authenticateFirebaseUser, (req: Request<any, any, ICreatePaymentRequestBody>, res: Response, next: NextFunction) => {
+router.get('/', (req: Request, res: Response, next: NextFunction) => {
+  PaymentService.getLastCard()
+    .then((data) => {
+      const payload = {
+        message: "",
+        body: data
+      }
 
-  const { originalAmount, association, paymentMethodId, note } = req.body;
+      send(res, payload, req.originalUrl);
+    })
+});
+
+router.post('/', authenticateFirebaseUser, async (req: Request<any, any, ICreatePaymentRequestBody>, res: Response, next: NextFunction) => {
+
+  const { body, userId = '', userEmail = '' } = req;
+
+  const { originalAmount, association, paymentMethodId, note,
+    savePaymentMethod } = body;
+
+  const user: IUserSchema = await UserService.getUserById(userId);
+
+  let customerId: string | undefined;
+
+  if (savePaymentMethod)
+    customerId = await PaymentService.savePaymentMethod(paymentMethodId, userEmail);
 
   PaymentService.createPayment({
     amount: originalAmount,
-    paymentMethodId
+    paymentMethodId,
+    customerId
   })
     .then(async (result: IManagePaymentServiceResponse): Promise<IManagePaymentServiceResponse> => {
       await PaymentService.createDonation({
         _id: result.paymentIntent,
+        user: user._id,
         originalAmount,
         association,
         note,

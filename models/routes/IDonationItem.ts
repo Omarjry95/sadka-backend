@@ -1,5 +1,8 @@
+import {IUserSchema} from "../schema";
+
 interface IDonationItem {
   _id: string,
+  user: string,
   originalAmount: number,
   association: string,
   note?: string,

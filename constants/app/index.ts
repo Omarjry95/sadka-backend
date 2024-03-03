@@ -23,6 +23,12 @@ const COMMA_SEPARATOR: string = ",";
 
 const SPACE_SEPARATOR: string = " ";
 
+const EMPTY_SEPARATOR: string = "";
+
+const MONTH_PREFIX: string = "0";
+
+const ASTERISK: string = "*";
+
 const MONGODB_CONNECTION_URL_PREFIX: string = "mongodb+srv"
   .concat(COLON_SEPARATOR)
   .concat(SLASH_SEPARATOR.repeat(2));
@@ -60,6 +66,9 @@ export {
     AMPERSAND_SEPARATOR,
     COMMA_SEPARATOR,
     SPACE_SEPARATOR,
+    EMPTY_SEPARATOR,
+    MONTH_PREFIX,
+    ASTERISK,
     OAUTH2_SCOPES,
     MAIL_TRANSPORT_DEFAULT_PARAMS,
     EMAIL_SENDING_DEFAULT_PARAMS

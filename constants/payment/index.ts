@@ -23,8 +23,14 @@ const SETUP_INTENT_DEFAULT_PARAMS: Stripe.SetupIntentCreateParams = {
   confirm: true
 }
 
+const SETUP_INTENTS_LIST_DEFAULT_PARAMS: Stripe.SetupIntentListParams = {
+  limit: 1,
+  expand: ["data.payment_method"]
+}
+
 export {
   STRIPE_DEFAULT_PARAMS,
   PAYMENT_INTENT_DEFAULT_PARAMS,
-  SETUP_INTENT_DEFAULT_PARAMS
+  SETUP_INTENT_DEFAULT_PARAMS,
+  SETUP_INTENTS_LIST_DEFAULT_PARAMS
 }

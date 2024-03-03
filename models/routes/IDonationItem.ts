@@ -1,5 +1,3 @@
-import {IUserSchema} from "../schema";
-
 interface IDonationItem {
   _id: string,
   user: string,

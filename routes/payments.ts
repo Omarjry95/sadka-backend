@@ -10,18 +10,6 @@ import {IUserSchema} from "../models/schema";
 
 var router = express.Router();
 
-router.get('/', (req: Request, res: Response, next: NextFunction) => {
-  PaymentService.getLastCard()
-    .then((data) => {
-      const payload = {
-        message: "",
-        body: data
-      }
-
-      send(res, payload, req.originalUrl);
-    })
-});
-
 router.post('/', authenticateFirebaseUser, async (req: Request<any, any, ICreatePaymentRequestBody>, res: Response, next: NextFunction) => {
 
   const { body, userId = '', userEmail = '' } = req;
@@ -89,6 +77,18 @@ router.post('/confirm', authenticateFirebaseUser, (req: Request<any, any, IConfi
 
     send(res, payload, req.originalUrl);
   })
+});
+
+router.get('/lastSetupCard', (req: Request, res: Response, next: NextFunction) => {
+  PaymentService.getLastCard()
+    .then((data) => {
+      const payload = {
+        message: messages.fetchSuccess("Card").observable,
+        body: data
+      }
+
+      send(res, payload, req.originalUrl);
+    })
 });
 
 router.get('/publishable-key', authenticateFirebaseUser, (req: Request, res: Response, next: NextFunction) => {

@@ -7,6 +7,7 @@ import IConfirmPaymentRequestBody from "./IConfirmPaymentRequestBody";
 import IManagePaymentServiceResponse from "./IManagePaymentServiceResponse";
 import ICreatePaymentServiceRequestBody from "./ICreatePaymentServiceRequestBody";
 import IUpdateUserServiceRequestBody from "./IUpdateUserServiceRequestBody";
+import ILastSetupCardResponse from './ILastSetupCardResponse';
 import IRoleItem from "./IRoleItem";
 import IRoundingItem from "./IRoundingItem";
 import IDonationItem from "./IDonationItem";
@@ -21,6 +22,7 @@ export {
   IConfirmPaymentRequestBody,
   IManagePaymentServiceResponse,
   ICreatePaymentServiceRequestBody,
+  ILastSetupCardResponse,
   IRoleItem,
   IRoundingItem,
   IDonationItem

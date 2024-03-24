@@ -10,6 +10,7 @@ import IUpdateUserServiceRequestBody from "./IUpdateUserServiceRequestBody";
 import ILastSetupCardResponse from './ILastSetupCardResponse';
 import IRoleItem from "./IRoleItem";
 import IRoundingItem from "./IRoundingItem";
+import IStoreItem from "./IStoreItem";
 import IDonationItem from "./IDonationItem";
 
 export {
@@ -25,5 +26,6 @@ export {
   ILastSetupCardResponse,
   IRoleItem,
   IRoundingItem,
+  IStoreItem,
   IDonationItem
 }

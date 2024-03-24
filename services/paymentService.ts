@@ -22,7 +22,8 @@ const { STRIPE_PUBLISHABLE_KEY, STRIPE_SECRET_KEY } = process.env;
 
 const stripe = new Stripe(STRIPE_SECRET_KEY as string, STRIPE_DEFAULT_PARAMS);
 
-const getResponseByPaymentIntentStatus = (paymentIntent: Stripe.PaymentIntent, clientSecret?: string): IManagePaymentServiceResponse => {
+const getResponseByPaymentIntentStatus = (paymentIntent: Stripe.PaymentIntent,
+                                          clientSecret?: string): IManagePaymentServiceResponse => {
 
   const { id, status } = paymentIntent;
 
@@ -47,6 +48,14 @@ const getResponseByPaymentIntentStatus = (paymentIntent: Stripe.PaymentIntent, c
   }
 };
 
+const getLastPaymentMethod = (): Promise<Stripe.PaymentMethod | null> => stripe.setupIntents
+  .list(SETUP_INTENTS_LIST_DEFAULT_PARAMS)
+  .then((response: Stripe.Response<Stripe.ApiList<Stripe.SetupIntent>>) => {
+    const setupIntent: Stripe.SetupIntent = response.data[0];
+
+    return setupIntent ? setupIntent.payment_method as Stripe.PaymentMethod : null;
+  });
+
 const paymentService = {
   createDonation: async (d: IDonationItem) => {
     try {
@@ -57,17 +66,30 @@ const paymentService = {
       throw new DocumentNotCreated(Donation.modelName);
     }
   },
-  createPayment: async (payment: ICreatePaymentServiceRequestBody): Promise<IManagePaymentServiceResponse> => stripe.paymentIntents.create({
-    ...PAYMENT_INTENT_DEFAULT_PARAMS,
-    amount: payment.amount * 100,
-    payment_method: payment.paymentMethodId,
-    customer: payment.customerId
-  })
-    .then((paymentIntent) => getResponseByPaymentIntentStatus(paymentIntent))
-    .catch((e) => {
-      console.log(e);
-      throw new StripePaymentFailed();
-    }),
+  createPayment: async (payment: ICreatePaymentServiceRequestBody): Promise<IManagePaymentServiceResponse> => {
+    let { paymentMethodId, customerId } = payment;
+
+    if (!paymentMethodId) {
+      const paymentMethod: Stripe.PaymentMethod | null = await getLastPaymentMethod();
+
+      if (paymentMethod) {
+        paymentMethodId = paymentMethod.id;
+        customerId = paymentMethod.customer as string;
+      }
+    }
+
+    return stripe.paymentIntents.create({
+        ...PAYMENT_INTENT_DEFAULT_PARAMS,
+        amount: payment.amount * 100,
+        payment_method: paymentMethodId,
+        customer: customerId
+      })
+      .then((paymentIntent) => getResponseByPaymentIntentStatus(paymentIntent))
+      .catch((e) => {
+        console.log(e);
+        throw new StripePaymentFailed();
+      })
+  },
   confirmDonation: async (id: string) => Donation.findById(id)
     .then((donation) => {
       if (!donation)
@@ -85,16 +107,10 @@ const paymentService = {
     .catch(() => {
       throw new StripePaymentFailed();
     }),
-  getLastCard: async (): Promise<ILastSetupCardResponse | null> => stripe.setupIntents
-    .list(SETUP_INTENTS_LIST_DEFAULT_PARAMS)
-    .then((setupIntent: Stripe.Response<Stripe.ApiList<Stripe.SetupIntent>>) => {
-      const setupIntents: Stripe.SetupIntent[] = setupIntent.data;
-
-      if (setupIntents.length == 0)
-        return null;
-
-      const paymentMethod: Stripe.PaymentMethod = setupIntents[0]
-        .payment_method as Stripe.PaymentMethod;
+  getLastCard: async (): Promise<ILastSetupCardResponse | null> => getLastPaymentMethod()
+    .then((paymentMethod: Stripe.PaymentMethod | null) => {
+      if (!paymentMethod)
+        return paymentMethod;
 
       const { card: paymentCard } = paymentMethod;
 

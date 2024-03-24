@@ -9,6 +9,7 @@ import {
 } from "../constants/app";
 import * as messages from "../logger/messages";
 import { DatabaseConnectionFailed } from "../errors/custom";
+import {testStores} from "./seeders";
 // import { firstFirebaseUserSeeder, defaultRolesSeeder, defaultRoundingsSeeder } from './seeders';
 
 const establishDatabaseConnection = async (dbName: string = "", dbUsername: string = "", dbPwd: string = "") => {
@@ -41,12 +42,13 @@ const establishDatabaseConnection = async (dbName: string = "", dbUsername: stri
 const databaseProcess = () => {
     const { DATABASE_NAME, DATABASE_USERNAME, DATABASE_PASSWORD } = process.env;
 
-    return establishDatabaseConnection(DATABASE_NAME, DATABASE_USERNAME, DATABASE_PASSWORD);
-}
-  /* Seeders: Please comment after completing seeding the database ! */
-  // .then(defaultRolesSeeder)
-  // .then(firstUserSeeder)
-  // .then(defaultRoundingsSeeder)
-;
+    return establishDatabaseConnection(DATABASE_NAME, DATABASE_USERNAME, DATABASE_PASSWORD)
+    /* Seeders: Please comment after completing seeding the database ! */
+    // .then(defaultRolesSeeder)
+    // .then(firstUserSeeder)
+    // .then(defaultRoundingsSeeder)
+    //   .then(testStores)
+    ;
+};
 
 export default databaseProcess;

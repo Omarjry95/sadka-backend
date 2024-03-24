@@ -11,11 +11,13 @@ import DocumentNotUpdated from "./DocumentNotUpdated";
 import StripePaymentFailed from "./StripePaymentFailed";
 import StripeFetchFailed from "./StripeFetchFailed";
 import StripePublishableKeyNotFound from "./StripePublishableKeyNotFound";
+import SeedsInsertionFailed from "./SeedsInsertionFailed";
 
 export {
   DatabaseConnectionFailed,
   AuthError,
   FirebaseInitFailed,
+  SeedsInsertionFailed,
   DocumentNotFound,
   DocumentNotCreated,
   DocumentNotUpdated,

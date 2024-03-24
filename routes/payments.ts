@@ -14,7 +14,7 @@ router.post('/', authenticateFirebaseUser, async (req: Request<any, any, ICreate
 
   const { body, userId = '', userEmail = '' } = req;
 
-  const { originalAmount, association, paymentMethodId, note,
+  const { originalAmount, association, paymentMethodId = '', note,
     savePaymentMethod } = body;
 
   const user: IUserSchema = await UserService.getUserById(userId);

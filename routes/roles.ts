@@ -10,20 +10,21 @@ import send from "../handlers/success";
 
 var router = express.Router();
 
-router.get('/', verifyJwt(), verifyRequiredScopes([OAUTH2_SCOPES.unrestricted]), async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const roles: IRoleItem[] = await RoleService.getAllRoles();
+router.get('/', verifyJwt(), verifyRequiredScopes([OAUTH2_SCOPES.unrestricted]),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const roles: IRoleItem[] = await RoleService.getAllRoles();
 
-    const payload = {
-      message: messages.fetchSuccess(Role.modelName).observable,
-      body: roles
+      const payload = {
+        message: messages.fetchSuccess(Role.modelName).observable,
+        body: roles
+      }
+
+      send(res, payload, req.originalUrl);
     }
-
-    send(res, payload, req.originalUrl);
-  }
-  catch (e: any) {
-    next(e);
-  }
+    catch (e: any) {
+      next(e);
+    }
 });
 
 export default router;

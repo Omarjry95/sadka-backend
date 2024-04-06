@@ -8,11 +8,22 @@ const Donation = model('Donation', new Schema<IDonationSchema>({
     ref: "User",
     required: true
   },
-  originalAmount: { type: Number, required: false },
+  amount: { type: Number, required: true },
+  productAmount: { type: Number, required: false },
+  rounding: {
+    type: Schema.Types.ObjectId,
+    ref: "Rounding",
+    required: false
+  },
   association: {
     type: String,
     ref: "User",
     required: true
+  },
+  store: {
+    type: Schema.Types.ObjectId,
+    ref: "Store",
+    required: false
   },
   note: { type: String, required: false },
   success: { type: Boolean, required: true }

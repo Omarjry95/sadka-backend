@@ -1,5 +1,6 @@
 import {IStoreItem} from "../models/routes";
 import {Store} from "../schema";
+import {IStoreSchema} from "../models/schema";
 
 const storeService = {
   getAllStores: (): Promise<IStoreItem[]> => Store.find()
@@ -9,7 +10,8 @@ const storeService = {
         _id,
         label: name,
         photo
-      })))
+      }))),
+  getStoreById: async (id?: string): Promise<IStoreSchema | null> => id ? Store.findById(id) : null
 }
 
 export default storeService;

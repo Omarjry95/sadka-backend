@@ -67,7 +67,7 @@ const paymentService = {
     }
   },
   createPayment: async (payment: ICreatePaymentServiceRequestBody): Promise<IManagePaymentServiceResponse> => {
-    let { paymentMethodId, customerId } = payment;
+    let { amount, paymentMethodId, customerId } = payment;
 
     if (!paymentMethodId) {
       const paymentMethod: Stripe.PaymentMethod | null = await getLastPaymentMethod();
@@ -80,7 +80,7 @@ const paymentService = {
 
     return stripe.paymentIntents.create({
         ...PAYMENT_INTENT_DEFAULT_PARAMS,
-        amount: payment.amount * 100,
+        amount: Number((amount * 100).toFixed(2)),
         payment_method: paymentMethodId,
         customer: customerId
       })
@@ -107,6 +107,11 @@ const paymentService = {
     .catch(() => {
       throw new StripePaymentFailed();
     }),
+  calculatePaymentAmount: (amount: number, power: number): number => {
+    const pointTo = Math.pow(10, 3 - power);
+
+    return (Number((amount * pointTo).toFixed(0)) + 1) / pointTo;
+  },
   getLastCard: async (): Promise<ILastSetupCardResponse | null> => getLastPaymentMethod()
     .then((paymentMethod: Stripe.PaymentMethod | null) => {
       if (!paymentMethod)

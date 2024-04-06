@@ -18,7 +18,8 @@ const roundingService = {
     })
     .catch(() => {
       throw new DocumentNotFound(Rounding.modelName);
-    })
+    }),
+  getRoundingById: async (id?: string): Promise<IRoundingSchema | null> => id ? Rounding.findById(id) : null
 }
 
 export default roundingService;

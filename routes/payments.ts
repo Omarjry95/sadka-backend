@@ -2,7 +2,7 @@ import * as express from "express";
 import {NextFunction, Response, Request} from "express";
 import authenticateFirebaseUser from "../middlewares/firebase-auth";
 import {IConfirmPaymentRequestBody, ICreatePaymentRequestBody, IManagePaymentServiceResponse} from "../models/routes";
-import {PaymentService, UserService} from "../services";
+import {PaymentService, RoundingService, StoreService, UserService} from "../services";
 import * as messages from "../logger/messages";
 import send from "../handlers/success";
 import {Donation} from "../schema";
@@ -10,12 +10,13 @@ import {IUserSchema} from "../models/schema";
 
 var router = express.Router();
 
-router.post('/', authenticateFirebaseUser, async (req: Request<any, any, ICreatePaymentRequestBody>, res: Response, next: NextFunction) => {
+router.post('/', authenticateFirebaseUser, async (req: Request<any, any, ICreatePaymentRequestBody>,
+                                                  res: Response, next: NextFunction) => {
 
   const { body, userId = '', userEmail = '' } = req;
 
-  const { originalAmount, association, paymentMethodId = '', note,
-    savePaymentMethod } = body;
+  const { store , originalAmount, rounding, association,
+    paymentMethodId = '', note, savePaymentMethod } = body;
 
   const user: IUserSchema = await UserService.getUserById(userId);
 
@@ -24,17 +25,33 @@ router.post('/', authenticateFirebaseUser, async (req: Request<any, any, ICreate
   if (savePaymentMethod)
     customerId = await PaymentService.savePaymentMethod(paymentMethodId, userEmail);
 
+  let amount = originalAmount;
+
+  const roundingItem = await RoundingService.getRoundingById(rounding);
+
+  console.log('Amount: ' + amount);
+
+  if (roundingItem)
+    amount = PaymentService.calculatePaymentAmount(amount, roundingItem.power);
+
+  console.log('Amount: ' + amount);
+
   PaymentService.createPayment({
-    amount: originalAmount,
+    amount,
     paymentMethodId,
     customerId
   })
     .then(async (result: IManagePaymentServiceResponse): Promise<IManagePaymentServiceResponse> => {
+      const storeItem = await StoreService.getStoreById(store);
+
       await PaymentService.createDonation({
         _id: result.paymentIntent,
         user: user._id,
-        originalAmount,
+        amount: amount !== originalAmount ? parseFloat((amount - originalAmount).toFixed(2)) : amount,
+        productAmount: amount !== originalAmount ? originalAmount : undefined,
+        rounding: roundingItem?._id,
         association,
+        store: storeItem?._id,
         note,
         success: result.success
       });

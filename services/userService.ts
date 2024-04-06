@@ -39,7 +39,7 @@ const userService = {
         .catch(() => {
             throw new DocumentNotFound(User.modelName);
         }),
-    getUserById: async (id: string): Promise<IUserSchema> => User.findById(id)
+    getUserById: (id: string): Promise<IUserSchema> => User.findById(id)
       .then((user: IUserSchema | null) => {
           if (!user)
               throw new Error();

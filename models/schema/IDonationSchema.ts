@@ -1,9 +1,12 @@
-import {Document} from "mongoose";
+import {Document, Types} from "mongoose";
 
 interface IDonationSchema extends Document {
   user: string,
-  originalAmount?: number,
+  amount: number,
+  productAmount?: number,
+  rounding?: Types.ObjectId,
   association: string,
+  store?: Types.ObjectId,
   note?: string,
   success: boolean
 }
